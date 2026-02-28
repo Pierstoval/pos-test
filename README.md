@@ -23,3 +23,25 @@ Run the `pnpm run tauri build` command to build the project for production.
 
 - The app as a simple executable file is in the `src-tauri/target/release/pos` file (or `pos.exe` on Windows)
 - Several installers for your platform are located in the `src-tauri/target/release/bundle/` directory.
+
+## Showcase
+
+<details>
+<summary>Click to expand</summary>
+
+![](./docs/Sales.png)
+
+![](./docs/Products.png)
+
+![](./docs/Product_add.png)
+
+![](./docs/Categories.png)
+
+![](./docs/Categories_add.png)
+
+![](./docs/Orders.png)
+
+![](./docs/Dashboard.png)
+
+
+</details>
