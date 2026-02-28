@@ -1,7 +1,25 @@
-# Tauri + SvelteKit + TypeScript
+# POS prototype
 
-Ce projet est une application de caisse (Point de Vente) construite avec Tauri, SvelteKit et TypeScript.
+## Installation
 
-## Configuration IDE recommandée
+Requirements:
 
-[VS Code](https://code.visualstudio.com/) + [Svelte](https://marketplace.visualstudio.com/items?itemName=svelte.svelte-vscode) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer).
+- Node.js version 22 or later
+- PNPM version 10 or later
+- Rust and Cargo, version 1.93 or later
+
+To install:
+
+- Check that you have the necessary pre-requisites for Tauri: https://tauri.app/start/prerequisites/
+- Run the `pnpm install` command
+
+## Development
+
+Run the `pnpm run tauri dev` command to start working on the project.
+
+## Build for release
+
+Run the `pnpm run tauri build` command to build the project for production.
+
+- The app as a simple executable file is in the `src-tauri/target/release/pos` file (or `pos.exe` on Windows)
+- Several installers for your platform are located in the `src-tauri/target/release/bundle/` directory.
