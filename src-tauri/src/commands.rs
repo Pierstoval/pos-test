@@ -32,6 +32,55 @@ pub(crate) fn list_categories_inner(db: &DbState) -> Result<Vec<Category>, Strin
     Ok(categories)
 }
 
+pub(crate) fn create_category_inner(
+    db: &DbState,
+    payload: CreateCategoryPayload,
+) -> Result<Category, String> {
+    let conn = db
+        .conn
+        .lock()
+        .map_err(|e| format!("DB lock error: {e}"))?;
+
+    conn.execute(
+        "INSERT INTO categories (id, label, color) VALUES (?1, ?2, ?3)",
+        params![payload.id, payload.label, payload.color],
+    )
+    .map_err(|e| format!("Insert error: {e}"))?;
+
+    Ok(Category {
+        id: payload.id,
+        label: payload.label,
+        color: payload.color,
+    })
+}
+
+pub(crate) fn update_category_inner(
+    db: &DbState,
+    payload: UpdateCategoryPayload,
+) -> Result<Category, String> {
+    let conn = db
+        .conn
+        .lock()
+        .map_err(|e| format!("DB lock error: {e}"))?;
+
+    let rows_affected = conn
+        .execute(
+            "UPDATE categories SET label = ?1, color = ?2 WHERE id = ?3",
+            params![payload.label, payload.color, payload.id],
+        )
+        .map_err(|e| format!("Update error: {e}"))?;
+
+    if rows_affected == 0 {
+        return Err(format!("Category not found: {}", payload.id));
+    }
+
+    Ok(Category {
+        id: payload.id,
+        label: payload.label,
+        color: payload.color,
+    })
+}
+
 pub(crate) fn list_products_inner(db: &DbState) -> Result<Vec<Product>, String> {
     let conn = db
         .conn
@@ -421,6 +470,22 @@ pub fn list_categories(state: State<'_, DbState>) -> Result<Vec<Category>, Strin
 }
 
 #[tauri::command]
+pub fn create_category(
+    state: State<'_, DbState>,
+    payload: CreateCategoryPayload,
+) -> Result<Category, String> {
+    create_category_inner(&state, payload)
+}
+
+#[tauri::command]
+pub fn update_category(
+    state: State<'_, DbState>,
+    payload: UpdateCategoryPayload,
+) -> Result<Category, String> {
+    update_category_inner(&state, payload)
+}
+
+#[tauri::command]
 pub fn list_products(state: State<'_, DbState>) -> Result<Vec<Product>, String> {
     list_products_inner(&state)
 }
@@ -492,25 +557,25 @@ mod tests {
     }
 
     #[test]
-    fn list_products_empty() {
+    fn list_products_returns_defaults() {
         let db = init_db_in_memory();
         let products = list_products_inner(&db).unwrap();
-        assert!(products.is_empty());
+        assert_eq!(products.len(), 20);
     }
 
     #[test]
     fn create_and_list_products() {
         let db = init_db_in_memory();
-        let created = make_product(&db, "Cola", 150, "soft_drink");
+        let created = make_product(&db, "Cola", 150, "boisson-sans-alcool");
         assert_eq!(created.name, "Cola");
         assert_eq!(created.price, 150);
-        assert_eq!(created.category_id, "soft_drink");
+        assert_eq!(created.category_id, "boisson-sans-alcool");
         assert!(created.available);
 
         let products = list_products_inner(&db).unwrap();
-        assert_eq!(products.len(), 1);
-        assert_eq!(products[0].id, created.id);
-        assert_eq!(products[0].name, "Cola");
+        assert_eq!(products.len(), 21);
+        let cola = products.iter().find(|p| p.id == created.id).expect("Cola should be in the list");
+        assert_eq!(cola.name, "Cola");
     }
 
     #[test]
@@ -537,8 +602,9 @@ mod tests {
 
         // Verify via list
         let products = list_products_inner(&db).unwrap();
-        assert_eq!(products[0].name, "Crisps");
-        assert!(!products[0].available);
+        let crisps = products.iter().find(|p| p.id == updated.id).expect("Crisps should be in the list");
+        assert_eq!(crisps.name, "Crisps");
+        assert!(!crisps.available);
     }
 
     #[test]
@@ -561,7 +627,7 @@ mod tests {
     #[test]
     fn toggle_availability() {
         let db = init_db_in_memory();
-        let p = make_product(&db, "Water", 100, "soft_drink");
+        let p = make_product(&db, "Water", 100, "boisson-sans-alcool");
         assert!(p.available);
 
         // Toggle off
@@ -580,7 +646,7 @@ mod tests {
     #[test]
     fn create_order_success() {
         let db = init_db_in_memory();
-        let p = make_product(&db, "Candy", 50, "sweets");
+        let p = make_product(&db, "Candy", 50, "sucreries");
 
         let order = create_order_inner(
             &db,
@@ -627,7 +693,7 @@ mod tests {
     #[test]
     fn dashboard_summary_reflects_orders() {
         let db = init_db_in_memory();
-        let p1 = make_product(&db, "Soda", 200, "soft_drink");
+        let p1 = make_product(&db, "Soda", 200, "boisson-sans-alcool");
         let p2 = make_product(&db, "Bar", 100, "snack");
 
         // Order 1: 2x Soda, paid by cash => 400

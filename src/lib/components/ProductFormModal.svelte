@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { Product, Category } from "$lib/types";
+	import { t } from "$lib/i18n";
 
 	interface Props {
 		product: Product | null;
@@ -36,15 +37,15 @@
 <div class="modal-backdrop" onclick={onCancel} onkeydown={(e) => e.key === "Escape" && onCancel()}>
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div class="modal" onclick={(e) => e.stopPropagation()}>
-		<h2>{product ? "Edit Product" : "New Product"}</h2>
+		<h2>{product ? $t("productForm.editTitle") : $t("productForm.newTitle")}</h2>
 
 		<div class="form-field">
-			<label for="product-name">Name</label>
-			<input id="product-name" type="text" bind:value={name} placeholder="Product name" />
+			<label for="product-name">{$t("productForm.name")}</label>
+			<input id="product-name" type="text" bind:value={name} placeholder={$t("productForm.namePlaceholder")} />
 		</div>
 
 		<div class="form-field">
-			<label for="product-price">Price (EUR)</label>
+			<label for="product-price">{$t("productForm.priceLabel")}</label>
 			<input
 				id="product-price"
 				type="text"
@@ -55,7 +56,7 @@
 		</div>
 
 		<fieldset class="form-field radio-group">
-			<legend>Category</legend>
+			<legend>{$t("productForm.category")}</legend>
 			{#each categories as cat (cat.id)}
 				<label>
 					<input type="radio" name="category" value={cat.id} bind:group={category_id} />
@@ -68,15 +69,15 @@
 			<div class="form-field checkbox-field">
 				<label>
 					<input type="checkbox" bind:checked={available} />
-					Available
+					{$t("productForm.available")}
 				</label>
 			</div>
 		{/if}
 
 		<div class="modal-actions">
-			<button class="btn btn-cancel" onclick={onCancel} disabled={isSubmitting}>Cancel</button>
+			<button class="btn btn-cancel" onclick={onCancel} disabled={isSubmitting}>{$t("productForm.cancel")}</button>
 			<button class="btn btn-confirm" onclick={handleSubmit} disabled={!canSave}>
-				{isSubmitting ? "Saving..." : "Save"}
+				{isSubmitting ? $t("productForm.saving") : $t("productForm.save")}
 			</button>
 		</div>
 	</div>

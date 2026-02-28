@@ -1,12 +1,14 @@
 <script lang="ts">
 	import { page } from "$app/state";
 	import { invoke } from "@tauri-apps/api/core";
+	import { t } from "$lib/i18n";
 
 	const links = [
-		{ href: "/", label: "Sales" },
-		{ href: "/products", label: "Products" },
-		{ href: "/orders", label: "Orders" },
-		{ href: "/dashboard", label: "Dashboard" },
+		{ href: "/", labelKey: "nav.sales" },
+		{ href: "/products", labelKey: "nav.products" },
+		{ href: "/categories", labelKey: "nav.categories" },
+		{ href: "/orders", labelKey: "nav.orders" },
+		{ href: "/dashboard", labelKey: "nav.dashboard" },
 	];
 
 	const isDev = import.meta.env.DEV;
@@ -19,13 +21,13 @@
 	}
 
 	async function resetDatabase() {
-		if (!confirm("This will delete ALL data (products, orders). Are you sure?")) return;
+		if (!confirm($t("nav.resetConfirm"))) return;
 		isResetting = true;
 		try {
 			await invoke("reset_database");
 			window.location.reload();
 		} catch (e) {
-			alert(`Reset failed: ${e}`);
+			alert($t("nav.resetFailed", { error: String(e) }));
 			isResetting = false;
 		}
 	}
@@ -34,12 +36,12 @@
 <nav class="nav-menu">
 	{#each links as link}
 		<a href={link.href} class:active={isActive(link.href)}>
-			{link.label}
+			{$t(link.labelKey)}
 		</a>
 	{/each}
 	{#if isDev}
 		<button class="reset-btn" onclick={resetDatabase} disabled={isResetting}>
-			{isResetting ? "Resetting..." : "Reset DB"}
+			{isResetting ? $t("nav.resetting") : $t("nav.resetDb")}
 		</button>
 	{/if}
 </nav>

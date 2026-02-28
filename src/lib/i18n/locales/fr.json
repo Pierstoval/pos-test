@@ -1,0 +1,127 @@
+{
+  "nav": {
+    "sales": "Ventes",
+    "products": "Produits",
+    "categories": "Catégories",
+    "orders": "Commandes",
+    "dashboard": "Tableau de bord",
+    "resetDb": "Réinit. BDD",
+    "resetting": "Réinitialisation...",
+    "resetConfirm": "Cela supprimera TOUTES les données (produits, commandes). Êtes-vous sûr ?",
+    "resetFailed": "Échec de la réinitialisation : {error}"
+  },
+  "order": {
+    "currentOrder": "Commande en cours",
+    "emptyMessage": "Appuyez sur un produit pour l'ajouter.",
+    "total": "Total",
+    "clear": "Effacer",
+    "checkout": "Encaisser"
+  },
+  "checkout": {
+    "title": "Encaissement",
+    "total": "Total",
+    "cash": "Espèces",
+    "card": "Carte",
+    "amountReceived": "Montant reçu",
+    "change": "Monnaie :",
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "submitting": "Envoi..."
+  },
+  "productForm": {
+    "editTitle": "Modifier le produit",
+    "newTitle": "Nouveau produit",
+    "name": "Nom",
+    "namePlaceholder": "Nom du produit",
+    "priceLabel": "Prix (EUR)",
+    "category": "Catégorie",
+    "available": "Disponible",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "saving": "Enregistrement..."
+  },
+  "categoryForm": {
+    "editTitle": "Modifier la catégorie",
+    "newTitle": "Nouvelle catégorie",
+    "idLabel": "ID (slug)",
+    "idPlaceholder": "ex. boisson_sans_alcool",
+    "idHint": "L'ID ne peut pas être modifié après la création.",
+    "label": "Libellé",
+    "labelPlaceholder": "Nom affiché",
+    "color": "Couleur",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "saving": "Enregistrement..."
+  },
+  "sales": {
+    "loading": "Chargement des produits...",
+    "loadError": "Échec du chargement des données : {error}",
+    "orderError": "Échec de la commande : {error}"
+  },
+  "products": {
+    "title": "Produits",
+    "addButton": "+ Ajouter un produit",
+    "loading": "Chargement des produits...",
+    "empty": "Aucun produit. Ajoutez votre premier produit !",
+    "colName": "Nom",
+    "colPrice": "Prix",
+    "colCategory": "Catégorie",
+    "colAvailable": "Disponible",
+    "colActions": "Actions",
+    "yes": "Oui",
+    "no": "Non",
+    "edit": "Modifier",
+    "loadError": "Échec du chargement des données : {error}",
+    "saveError": "Échec de l'enregistrement du produit : {error}",
+    "toggleError": "Échec du changement de disponibilité : {error}"
+  },
+  "categories": {
+    "title": "Catégories",
+    "addButton": "+ Ajouter une catégorie",
+    "loading": "Chargement des catégories...",
+    "empty": "Aucune catégorie. Ajoutez votre première catégorie !",
+    "colId": "ID",
+    "colLabel": "Libellé",
+    "colColor": "Couleur",
+    "colActions": "Actions",
+    "edit": "Modifier",
+    "loadError": "Échec du chargement des catégories : {error}",
+    "saveError": "Échec de l'enregistrement de la catégorie : {error}"
+  },
+  "orders": {
+    "title": "Commandes",
+    "loading": "Chargement des commandes...",
+    "empty": "Aucune commande pour le moment.",
+    "loadError": "Échec du chargement des commandes : {error}",
+    "colProduct": "Produit",
+    "colQty": "Qté",
+    "colUnitPrice": "Prix unitaire",
+    "colSubtotal": "Sous-total",
+    "paymentMethod": {
+      "cash": "Espèces",
+      "card": "Carte"
+    }
+  },
+  "dashboard": {
+    "title": "Tableau de bord",
+    "loading": "Chargement du tableau de bord...",
+    "loadError": "Échec du chargement du tableau de bord : {error}",
+    "noSales": "Aucune vente enregistrée pour le moment.",
+    "productTable": "Ventes par produit",
+    "colProduct": "Produit",
+    "colUnitPrice": "Prix unitaire",
+    "colQuantity": "Qté vendue",
+    "colTotal": "Total",
+    "productTableTotal": "Total général",
+    "paymentBreakdown": "Ventilation par mode de paiement",
+    "colPaymentMethod": "Mode de paiement",
+    "colRevenue": "Recettes",
+    "colTransactions": "Transactions",
+    "totalTransactions": "Nombre total de transactions",
+    "totalRevenue": "Chiffre d'affaires total",
+    "paymentMethod": {
+      "cash": "Espèces",
+      "card": "Carte"
+    }
+  }
+}

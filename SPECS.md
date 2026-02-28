@@ -1,151 +1,158 @@
-# POS System — Specifications
+# Système de Caisse (POS) — Spécifications
 
-## Overview
+## Présentation
 
-A lightweight Point of Sale desktop application for a convention booth, built with Tauri v2 (Rust backend) and Svelte 5. The system tracks sales of snacks and drinks. It does **not
-** handle any payment processing.
+Une application de caisse (Point de Vente) légère pour un stand de convention, construite avec Tauri v2 (backend Rust) et Svelte 5. Le système gère les ventes de snacks et de boissons. Il ne gère **aucun** traitement de paiement.
 
-Data is stored locally in SQLite (managed by Tauri). No remote database or internet connectivity is required.
-
----
-
-## Features
-
-### 1. Product Management
-
-A screen to manage the catalog of products available for sale.
-
-- Each product has: **name**, **price** (in cents, displayed as euros), **category** (`snack` or `drink`), an optional **emoji**, and an **available** boolean.
-- Products can be added, edited, and toggled available/unavailable.
-- Unavailable products do not appear on the sales screen.
-- Products cannot be deleted (to preserve transaction history integrity), only marked unavailable.
-
-### 2. Sales Screen (New Order)
-
-The main screen used during the event to create and submit orders.
-
-- Displays all **available** products as a grid of buttons, each showing the product name and price.
-- Tapping a product adds one unit to the current order.
-- The current order is displayed alongside the product grid, showing:
-    - Each selected product with its name, unit price, quantity, and line subtotal.
-    - The **total amount** for the order.
-- For each item in the current order, the user can:
-    - **Increase** the quantity (+1).
-    - **Decrease** the quantity (-1, removing the line when it reaches 0).
-- A **Checkout** button opens a checkout step where the user selects a payment method (**cash** or **card**).
-    - For cash payments, the user can enter the amount received and see the **change** to return.
-    - Confirming checkout records the order as a completed transaction (including the payment method).
-    - After checkout, the current order is cleared and a new one can be started.
-    - Payment method is recorded for reporting purposes only — no actual payment processing is involved.
-- A **Clear** button resets the current order without recording anything.
-
-### 3. Dashboard (Sales Summary)
-
-A read-only screen displaying a summary of all completed transactions.
-
-- **Per-product summary table** showing, for each product that has been sold at least once:
-    - Product name.
-    - Total quantity sold.
-    - Total revenue (quantity x unit price at time of sale).
-- **Grand total** of all sales revenue.
-- **Breakdown by payment method** (cash vs. card).
-- **Total number of transactions** completed.
-
-### 4. Transaction Log
-
-A screen (or section within the dashboard) listing all completed transactions.
-
-- Each entry shows: timestamp, number of items, total amount, and payment method.
-- Provides a way to **export** the full transaction log (e.g., as CSV or JSON).
-
-### 5. Basic Inventory (Optional)
-
-Optional stock tracking for products.
-
-- Set a **starting stock** quantity per product.
-- Stock decrements automatically on each sale.
-- Display a **low-stock warning** when a product's remaining quantity falls below a configurable threshold.
+Les données sont stockées localement dans SQLite (géré par Tauri). Aucune base de données distante ni connexion internet n'est requise.
 
 ---
 
-## Data Model
+## Fonctionnalités
+
+### 1. Gestion des produits
+
+Un écran pour gérer le catalogue de produits disponibles à la vente.
+
+- Chaque produit possède : **nom**, **prix** (en centimes, affiché en euros), **catégorie** (`snack` ou `drink`), un **emoji** optionnel, et un booléen **disponible**.
+- Les produits peuvent être ajoutés, modifiés et activés/désactivés.
+- Les produits indisponibles n'apparaissent pas sur l'écran de vente.
+- Les produits ne peuvent pas être supprimés (pour préserver l'intégrité de l'historique des transactions), seulement marqués comme indisponibles.
+
+### 2. Écran de vente (Nouvelle commande)
+
+L'écran principal utilisé pendant l'événement pour créer et soumettre des commandes.
+
+- Affiche tous les produits **disponibles** sous forme de grille de boutons, chacun montrant le nom du produit et son prix.
+- Appuyer sur un produit ajoute une unité à la commande en cours.
+- La commande en cours est affichée à côté de la grille de produits, montrant :
+    - Chaque produit sélectionné avec son nom, prix unitaire, quantité et sous-total.
+    - Le **montant total** de la commande.
+- Pour chaque article de la commande en cours, l'utilisateur peut :
+    - **Augmenter** la quantité (+1).
+    - **Diminuer** la quantité (-1, supprimant la ligne quand elle atteint 0).
+- Un bouton **Encaisser** ouvre une étape d'encaissement où l'utilisateur sélectionne un mode de paiement (**espèces** ou **carte**).
+    - Pour les paiements en espèces, l'utilisateur peut saisir le montant reçu et voir la **monnaie** à rendre.
+    - La confirmation de l'encaissement enregistre la commande comme une transaction terminée (incluant le mode de paiement).
+    - Après l'encaissement, la commande en cours est effacée et une nouvelle peut être commencée.
+    - Le mode de paiement est enregistré uniquement à des fins de reporting — aucun traitement de paiement réel n'est effectué.
+- Un bouton **Effacer** réinitialise la commande en cours sans rien enregistrer.
+
+### 3. Tableau de bord (Résumé des ventes)
+
+Un écran en lecture seule affichant un résumé de toutes les transactions terminées.
+
+- **Tableau récapitulatif par produit** montrant, pour chaque produit vendu au moins une fois :
+    - Nom du produit.
+    - Quantité totale vendue.
+    - Chiffre d'affaires total (quantité x prix unitaire au moment de la vente).
+- **Total général** de tous les revenus de ventes.
+- **Ventilation par mode de paiement** (espèces vs. carte).
+- **Nombre total de transactions** terminées.
+
+### 4. Journal des transactions
+
+Un écran (ou section dans le tableau de bord) listant toutes les transactions terminées.
+
+- Chaque entrée affiche : horodatage, nombre d'articles, montant total et mode de paiement.
+- Permet d'**exporter** le journal complet des transactions (par ex. en CSV ou JSON).
+
+### 5. Inventaire basique (Optionnel)
+
+Suivi optionnel du stock pour les produits.
+
+- Définir un **stock initial** par produit.
+- Le stock diminue automatiquement à chaque vente.
+- Afficher un **avertissement de stock bas** lorsque la quantité restante d'un produit descend en dessous d'un seuil configurable.
+
+---
+
+## Modèle de données
 
 ### Product
 
-| Field     | Type    | Description                                              |
+| Champ     | Type    | Description                                              |
 |-----------|---------|----------------------------------------------------------|
-| id        | string  | Unique identifier (UUID or similar)                      |
-| name      | string  | Display name                                             |
-| price     | number  | Price in cents (integer)                                 |
-| category  | string  | `"snack"`, `"soft_drink"`; `"alcohol_drink"`, `"sweets"` |
-| available | boolean | Whether the product is sellable                          |
+| id        | string  | Identifiant unique (UUID ou similaire)                   |
+| name      | string  | Nom affiché                                              |
+| price     | number  | Prix en centimes (entier)                                |
+| category  | string  | `"snack"`, `"soft_drink"`, `"alcohol"`, `"sweets"`       |
+| available | boolean | Si le produit est en vente                               |
 
 ### Order
 
-| Field | Type     | Description                               |
-|-------|----------|-------------------------------------------|
-| id    | string   | Unique identifier (UUID or similar)       |
-| items | relation | A list of OrderItem related to this order |
-| total | number   | total value of this order                 |
+| Champ | Type     | Description                                    |
+|-------|----------|------------------------------------------------|
+| id    | string   | Identifiant unique (UUID ou similaire)         |
+| items | relation | Liste de OrderItem liés à cette commande       |
+| total | number   | Valeur totale de cette commande                |
 
 ### OrderItem
 
-| Field       | Type   | Description                                                                  |
-|-------------|--------|------------------------------------------------------------------------------|
-| id          | string | Unique identifier (UUID or similar)                                          |
-| productId   | string | Reference to a Product                                                       |
-| productName | string | Product name snapshot at sale time                                           |
-| unitPrice   | number | Price in cents snapshot at sale time                                         |
-| quantity    | number | Number of units                                                              |
-| total       | number | Total price of this Order Item (unit price multiplied by quantity, in cents) |
+| Champ       | Type   | Description                                                                         |
+|-------------|--------|-------------------------------------------------------------------------------------|
+| id          | string | Identifiant unique (UUID ou similaire)                                              |
+| productId   | string | Référence à un Product                                                              |
+| productName | string | Nom du produit au moment de la vente                                                |
+| unitPrice   | number | Prix en centimes au moment de la vente                                              |
+| quantity    | number | Nombre d'unités                                                                     |
+| total       | number | Prix total de cet article (prix unitaire multiplié par la quantité, en centimes)    |
 
 ---
 
 ## Navigation
 
-The app has three top-level routes:
+L'application a quatre routes principales :
 
-| Route        | Screen             |
+| Route        | Écran              |
 |--------------|--------------------|
-| `/`          | Sales Screen       |
-| `/products`  | Product Management |
-| `/orders`    | Product Management |
-| `/dashboard` | Dashboard          |
+| `/`          | Écran de vente     |
+| `/products`  | Gestion produits   |
+| `/orders`    | Commandes          |
+| `/dashboard` | Tableau de bord    |
 
-A persistent navigation bar allows switching between the three screens.
-
----
-
-## Constraints
-
-- All prices are stored and computed as **integers in cents** to avoid floating-point errors. Displayed as euros (e.g., `150` -> `1.50 EUR`).
-- No authentication, no user accounts.
-- No payment processing. Payment method (cash/card) is recorded for reporting only.
-- No internet connectivity required for core functionality.
-- The app is packaged as a desktop binary via Tauri. All data stays local.
-- The UI must be usable on a tablet (large touch targets, readable fonts).
-- Data must be stored in an SQLite database that is saved alongside the binary file. 
+Une barre de navigation persistante permet de basculer entre les écrans.
 
 ---
 
-## Default products
+## Contraintes
 
-- Soft drinks:
-  - Tea, coffee: 1€
-  - Soda, fruit juice: 2€
-- Alcohol drinks:
-  - Beer (jug): 12€
-  - Beer (25cl): 3€
-  - Cider (sweet/dry): 3€
-- Glass deposit: 1€
-- Sweets:
-  - Candy/M&Ms/Twix...: 1€
-  - Sweet cake slice: 1€
-  - Crèpe nature: 2€
-  - Crèpe with sugar: 2,50€
-  - Crèpe with jam: 3,50€
-  - Crèpe with caramel: 3,50€
-  - Crèpe with Nutella: 3,50€
-- Salt cake: 1€
-- Sandwich: 4€
-- Panini: 4€
+- Tous les prix sont stockés et calculés comme des **entiers en centimes** pour éviter les erreurs de virgule flottante. Affichés en euros (ex. `150` -> `1,50 EUR`).
+- Pas d'authentification, pas de comptes utilisateur.
+- Pas de traitement de paiement. Le mode de paiement (espèces/carte) est enregistré uniquement pour le reporting.
+- Aucune connexion internet requise pour les fonctionnalités principales.
+- L'application est empaquetée comme un binaire de bureau via Tauri. Toutes les données restent locales.
+- L'interface doit être utilisable sur tablette (grandes zones tactiles, polices lisibles).
+- Les données doivent être stockées dans une base SQLite sauvegardée à côté du binaire.
+
+---
+
+## Produits par défaut
+
+- Boissons sans alcool :
+  - Thé, café : 1 EUR
+  - Soda, jus de fruit : 2 EUR
+- Boissons alcoolisées :
+  - Bière (pichet) : 12 EUR
+  - Bière (25cl) : 3 EUR
+  - Cidre (doux/brut) : 3 EUR
+- Consigne verre : 1 EUR
+- Sucreries :
+  - Bonbon/M&Ms/Twix... : 1 EUR
+  - Part de gâteau : 1 EUR
+  - Crêpe nature : 2 EUR
+  - Crêpe au sucre : 2,50 EUR
+  - Crêpe à la confiture : 3,50 EUR
+  - Crêpe au caramel : 3,50 EUR
+  - Crêpe au Nutella : 3,50 EUR
+- Cake salé : 1 EUR
+- Sandwich : 4 EUR
+- Panini : 4 EUR
+
+---
+
+## Tableau de bord
+
+Cet élément affiche un tableau avec la liste de tous les produits, ainsi que le nombre d'éléments vendus pour chaque produit, un rappel du prix unitaire, et le prix total par produit (correspondant au nombre total de produits vendus multiplié par leur prix).
+
+La liste des éléments affichés sur ce tableau de bord se base uniquement sur les "OrderItem", et pas sur "Product", ce qui permet d'être certains qu'une modification de "Product" ne change pas les résultats finaux.

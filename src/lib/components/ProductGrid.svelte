@@ -10,9 +10,17 @@
 
 	let { products, categories, onProductClick }: Props = $props();
 
+	let categoryMap = $derived(
+		Object.fromEntries(categories.map((c) => [c.id, c])),
+	);
+
 	let sortedProducts = $derived(
 		[...products].sort((a, b) => {
 			if (a.available !== b.available) return a.available ? -1 : 1;
+			const catA = categoryMap[a.category_id]?.label ?? a.category_id;
+			const catB = categoryMap[b.category_id]?.label ?? b.category_id;
+			const catCmp = catA.localeCompare(catB);
+			if (catCmp !== 0) return catCmp;
 			return a.name.localeCompare(b.name);
 		}),
 	);

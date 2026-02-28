@@ -4,6 +4,18 @@ export interface Category {
 	color: string;
 }
 
+export interface CreateCategoryPayload {
+	id: string;
+	label: string;
+	color: string;
+}
+
+export interface UpdateCategoryPayload {
+	id: string;
+	label: string;
+	color: string;
+}
+
 export interface Product {
 	id: string;
 	name: string;
@@ -62,6 +74,28 @@ export interface UpdateProductPayload {
 	price: number;
 	category_id: string;
 	available: boolean;
+}
+
+// ── Dashboard ────────────────────────────────────────────────────────────────
+
+export interface ProductSalesSummary {
+	product_id: string;
+	product_name: string;
+	total_quantity: number;
+	total_revenue: number;
+}
+
+export interface PaymentMethodBreakdown {
+	payment_method: "cash" | "card";
+	total_revenue: number;
+	transaction_count: number;
+}
+
+export interface DashboardSummary {
+	total_revenue: number;
+	total_transactions: number;
+	per_product: ProductSalesSummary[];
+	per_payment_method: PaymentMethodBreakdown[];
 }
 
 /** Client-side cart item (product + chosen quantity). */

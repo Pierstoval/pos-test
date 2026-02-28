@@ -5,6 +5,7 @@
 	import ProductGrid from "$lib/components/ProductGrid.svelte";
 	import OrderPanel from "$lib/components/OrderPanel.svelte";
 	import CheckoutModal from "$lib/components/CheckoutModal.svelte";
+	import { t } from "$lib/i18n";
 
 	let products = $state<Product[]>([]);
 	let categories = $state<Category[]>([]);
@@ -22,7 +23,7 @@
 				invoke<Category[]>("list_categories"),
 			]);
 		} catch (e) {
-			error = `Failed to load data: ${e}`;
+			error = $t("sales.loadError", { error: String(e) });
 		} finally {
 			isLoading = false;
 		}
@@ -71,7 +72,7 @@
 			cart = [];
 			isCheckoutOpen = false;
 		} catch (e) {
-			error = `Order failed: ${e}`;
+			error = $t("sales.orderError", { error: String(e) });
 			isCheckoutOpen = false;
 		}
 	}
@@ -79,7 +80,7 @@
 
 <div class="sales-screen">
 	{#if isLoading}
-		<div class="status-msg">Loading products...</div>
+		<div class="status-msg">{$t("sales.loading")}</div>
 	{:else if error}
 		<div class="status-msg error">{error}</div>
 	{:else}

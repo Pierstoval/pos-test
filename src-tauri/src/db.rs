@@ -109,10 +109,10 @@ pub fn create_tables(conn: &Connection) -> Result<(), String> {
 pub fn create_default_data(conn: &Connection) {
     let defaults = [
         ("snack", "Snack", "#e8a735"),
-        ("soft_drink", "Soft drink", "#3b82f6"),
-        ("alcohol", "Alcohol", "#8b5cf6"),
-        ("sweets", "Sweets", "#e84393"),
-        ("other", "Other", "#6b7280"),
+        ("boisson-sans-alcool", "Boisson sans alcool", "#3b82f6"),
+        ("alcool", "Alcool", "#8b5cf6"),
+        ("sucreries", "Sucreries", "#e84393"),
+        ("autre", "Autre", "#6b7280"),
     ];
     for (id, label, color) in &defaults {
         conn.execute(
@@ -120,5 +120,35 @@ pub fn create_default_data(conn: &Connection) {
             rusqlite::params![id, label, color],
         )
         .expect("Failed to insert default category");
+    }
+
+    let default_products: [(&str, &str, i64, &str); 20] = [
+        ("the", "Thé", 100, "boisson-sans-alcool"),
+        ("cafe", "Café", 100, "boisson-sans-alcool"),
+        ("soda", "Soda", 200, "boisson-sans-alcool"),
+        ("jus-de-fruit", "Jus de fruit", 200, "boisson-sans-alcool"),
+        ("biere-pichet", "Bière (pichet)", 1200, "alcool"),
+        ("biere-25cl", "Bière (25cl)", 300, "alcool"),
+        ("cidre-doux", "Cidre (doux)", 300, "alcool"),
+        ("cidre-brut", "Cidre (brut)", 300, "alcool"),
+        ("consigne-verre", "Consigne verre", 100, "autre"),
+        ("consigne-pichet", "Consigne pichet", 500, "autre"),
+        ("bonbon", "Bonbon/M&Ms/Twix", 100, "sucreries"),
+        ("part-de-gateau", "Part de gâteau", 100, "sucreries"),
+        ("crepe-nature", "Crêpe nature", 200, "sucreries"),
+        ("crepe-sucre", "Crêpe au sucre", 250, "sucreries"),
+        ("crepe-confiture", "Crêpe à la confiture", 350, "sucreries"),
+        ("crepe-caramel", "Crêpe au caramel", 350, "sucreries"),
+        ("crepe-nutella", "Crêpe au Nutella", 350, "sucreries"),
+        ("cake-sale", "Cake salé", 100, "snack"),
+        ("sandwich", "Sandwich", 400, "snack"),
+        ("panini", "Panini", 400, "snack"),
+    ];
+    for (id, name, price, category_id) in &default_products {
+        conn.execute(
+            "INSERT OR IGNORE INTO products (id, name, price, category_id) VALUES (?1, ?2, ?3, ?4)",
+            rusqlite::params![id, name, price, category_id],
+        )
+        .expect("Failed to insert default product");
     }
 }

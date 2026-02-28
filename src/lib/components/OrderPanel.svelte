@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { CartItem } from "$lib/types";
 	import { formatPrice } from "$lib/utils/format";
+	import { t } from "$lib/i18n";
 
 	interface Props {
 		items: CartItem[];
@@ -17,10 +18,10 @@
 </script>
 
 <aside class="order-panel">
-	<h2>Current Order</h2>
+	<h2>{$t("order.currentOrder")}</h2>
 
 	{#if isEmpty}
-		<p class="empty-msg">Tap a product to add it.</p>
+		<p class="empty-msg">{$t("order.emptyMessage")}</p>
 	{:else}
 		<ul class="item-list">
 			{#each items as item (item.product.id)}
@@ -42,12 +43,12 @@
 
 	<div class="panel-footer">
 		<div class="total-row">
-			<span>Total</span>
+			<span>{$t("order.total")}</span>
 			<span class="total-amount">{formatPrice(total)}</span>
 		</div>
 		<div class="action-buttons">
-			<button class="btn btn-clear" disabled={isEmpty} onclick={onClear}>Clear</button>
-			<button class="btn btn-checkout" disabled={isEmpty} onclick={onCheckout}>Checkout</button>
+			<button class="btn btn-clear" disabled={isEmpty} onclick={onClear}>{$t("order.clear")}</button>
+			<button class="btn btn-checkout" disabled={isEmpty} onclick={onCheckout}>{$t("order.checkout")}</button>
 		</div>
 	</div>
 </aside>

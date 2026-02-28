@@ -4,6 +4,7 @@
 	import type { Product, Category, CreateProductPayload, UpdateProductPayload } from "$lib/types";
 	import { formatPrice } from "$lib/utils/format";
 	import ProductFormModal from "$lib/components/ProductFormModal.svelte";
+	import { t } from "$lib/i18n";
 
 	let products = $state<Product[]>([]);
 	let categories = $state<Category[]>([]);
@@ -29,7 +30,7 @@
 				invoke<Category[]>("list_categories"),
 			]);
 		} catch (e) {
-			error = `Failed to load data: ${e}`;
+			error = $t("products.loadError", { error: String(e) });
 		} finally {
 			isLoading = false;
 		}
@@ -77,7 +78,7 @@
 			closeForm();
 			await loadData();
 		} catch (e) {
-			error = `Failed to save product: ${e}`;
+			error = $t("products.saveError", { error: String(e) });
 			closeForm();
 		}
 	}
@@ -89,7 +90,7 @@
 				p.id === productId ? { ...p, available: newAvailable } : p,
 			);
 		} catch (e) {
-			error = `Failed to toggle availability: ${e}`;
+			error = $t("products.toggleError", { error: String(e) });
 		}
 	}
 
@@ -97,26 +98,26 @@
 
 <div class="products-page">
 	<div class="header">
-		<h1>Products</h1>
-		<button class="btn btn-add" onclick={openCreate}>+ Add Product</button>
+		<h1>{$t("products.title")}</h1>
+		<button class="btn btn-add" onclick={openCreate}>{$t("products.addButton")}</button>
 	</div>
 
 	{#if isLoading}
-		<div class="status-msg">Loading products...</div>
+		<div class="status-msg">{$t("products.loading")}</div>
 	{:else if error}
 		<div class="status-msg error">{error}</div>
 	{:else if products.length === 0}
-		<div class="status-msg">No products yet. Add your first product!</div>
+		<div class="status-msg">{$t("products.empty")}</div>
 	{:else}
 		<div class="table-wrapper">
 			<table>
 				<thead>
 					<tr>
-						<th>Name</th>
-						<th>Price</th>
-						<th>Category</th>
-						<th>Available</th>
-						<th>Actions</th>
+						<th>{$t("products.colName")}</th>
+						<th>{$t("products.colPrice")}</th>
+						<th>{$t("products.colCategory")}</th>
+						<th>{$t("products.colAvailable")}</th>
+						<th>{$t("products.colActions")}</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -139,12 +140,12 @@
 									class:toggle-off={!product.available}
 									onclick={() => toggleAvailability(product.id)}
 								>
-									{product.available ? "Yes" : "No"}
+									{product.available ? $t("products.yes") : $t("products.no")}
 								</button>
 							</td>
 							<td>
 								<button class="btn btn-edit" onclick={() => openEdit(product)}>
-									Edit
+									{$t("products.edit")}
 								</button>
 							</td>
 						</tr>

@@ -52,6 +52,22 @@ pub struct Category {
     pub color: String,
 }
 
+/// Payload sent from the frontend when creating a new category.
+#[derive(Debug, Deserialize)]
+pub struct CreateCategoryPayload {
+    pub id: String,
+    pub label: String,
+    pub color: String,
+}
+
+/// Payload sent from the frontend when updating an existing category.
+#[derive(Debug, Deserialize)]
+pub struct UpdateCategoryPayload {
+    pub id: String,
+    pub label: String,
+    pub color: String,
+}
+
 // ── Product ──────────────────────────────────────────────────────────────────
 
 /// A product in the catalog.

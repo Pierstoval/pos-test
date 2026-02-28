@@ -13,10 +13,18 @@ pub fn run() {
             let db_state = db::init_db(app.handle())
                 .map_err(|e| Box::<dyn std::error::Error>::from(e))?;
             app.manage(db_state);
+
+            #[cfg(debug_assertions)]
+            if let Some(window) = app.get_webview_window("main") {
+                window.open_devtools();
+            }
+
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
             list_categories,
+            create_category,
+            update_category,
             list_products,
             create_product,
             update_product,

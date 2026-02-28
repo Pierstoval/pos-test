@@ -1,0 +1,127 @@
+{
+  "nav": {
+    "sales": "Sales",
+    "products": "Products",
+    "categories": "Categories",
+    "orders": "Orders",
+    "dashboard": "Dashboard",
+    "resetDb": "Reset DB",
+    "resetting": "Resetting...",
+    "resetConfirm": "This will delete ALL data (products, orders). Are you sure?",
+    "resetFailed": "Reset failed: {error}"
+  },
+  "order": {
+    "currentOrder": "Current Order",
+    "emptyMessage": "Tap a product to add it.",
+    "total": "Total",
+    "clear": "Clear",
+    "checkout": "Checkout"
+  },
+  "checkout": {
+    "title": "Checkout",
+    "total": "Total",
+    "cash": "Cash",
+    "card": "Card",
+    "amountReceived": "Amount received",
+    "change": "Change:",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "submitting": "Submitting..."
+  },
+  "productForm": {
+    "editTitle": "Edit Product",
+    "newTitle": "New Product",
+    "name": "Name",
+    "namePlaceholder": "Product name",
+    "priceLabel": "Price (EUR)",
+    "category": "Category",
+    "available": "Available",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saving": "Saving..."
+  },
+  "categoryForm": {
+    "editTitle": "Edit Category",
+    "newTitle": "New Category",
+    "idLabel": "ID (slug)",
+    "idPlaceholder": "e.g. soft_drink",
+    "idHint": "ID cannot be changed after creation.",
+    "label": "Label",
+    "labelPlaceholder": "Display name",
+    "color": "Color",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saving": "Saving..."
+  },
+  "sales": {
+    "loading": "Loading products...",
+    "loadError": "Failed to load data: {error}",
+    "orderError": "Order failed: {error}"
+  },
+  "products": {
+    "title": "Products",
+    "addButton": "+ Add Product",
+    "loading": "Loading products...",
+    "empty": "No products yet. Add your first product!",
+    "colName": "Name",
+    "colPrice": "Price",
+    "colCategory": "Category",
+    "colAvailable": "Available",
+    "colActions": "Actions",
+    "yes": "Yes",
+    "no": "No",
+    "edit": "Edit",
+    "loadError": "Failed to load data: {error}",
+    "saveError": "Failed to save product: {error}",
+    "toggleError": "Failed to toggle availability: {error}"
+  },
+  "categories": {
+    "title": "Categories",
+    "addButton": "+ Add Category",
+    "loading": "Loading categories...",
+    "empty": "No categories yet. Add your first category!",
+    "colId": "ID",
+    "colLabel": "Label",
+    "colColor": "Color",
+    "colActions": "Actions",
+    "edit": "Edit",
+    "loadError": "Failed to load categories: {error}",
+    "saveError": "Failed to save category: {error}"
+  },
+  "orders": {
+    "title": "Orders",
+    "loading": "Loading orders...",
+    "empty": "No orders yet.",
+    "loadError": "Failed to load orders: {error}",
+    "colProduct": "Product",
+    "colQty": "Qty",
+    "colUnitPrice": "Unit price",
+    "colSubtotal": "Subtotal",
+    "paymentMethod": {
+      "cash": "Cash",
+      "card": "Card"
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "loading": "Loading dashboard...",
+    "loadError": "Failed to load dashboard: {error}",
+    "noSales": "No sales recorded yet.",
+    "productTable": "Sales by product",
+    "colProduct": "Product",
+    "colUnitPrice": "Unit price",
+    "colQuantity": "Qty sold",
+    "colTotal": "Total",
+    "productTableTotal": "Grand total",
+    "paymentBreakdown": "Payment method breakdown",
+    "colPaymentMethod": "Payment method",
+    "colRevenue": "Revenue",
+    "colTransactions": "Transactions",
+    "totalTransactions": "Total transactions",
+    "totalRevenue": "Total revenue",
+    "paymentMethod": {
+      "cash": "Cash",
+      "card": "Card"
+    }
+  }
+}

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { CartItem } from "$lib/types";
 	import { formatPrice } from "$lib/utils/format";
+	import { t } from "$lib/i18n";
 
 	interface Props {
 		items: CartItem[];
@@ -23,15 +24,19 @@
 	let change = $derived(cashReceivedCents - total);
 
 	let canConfirm = $derived.by(() => {
-		if (isSubmitting) return false;
-		if (!paymentMethod) return false;
-		if (paymentMethod === "cash" && cashReceivedCents < total) return false;
-		return true;
+		return !(
+			isSubmitting
+			|| !paymentMethod
+			|| (paymentMethod === "cash" && cashReceivedCents < total)
+		);
+
 	});
 
 	function selectPayment(method: "cash" | "card") {
 		paymentMethod = method;
-		if (method === "card") {
+		if (method === "cash") {
+			cashReceived = (total / 100).toFixed(2).replace(".", ",");
+		} else {
 			cashReceived = "";
 		}
 	}
@@ -47,7 +52,7 @@
 <div class="modal-backdrop" onclick={onCancel} onkeydown={(e) => e.key === "Escape" && onCancel()}>
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div class="modal" onclick={(e) => e.stopPropagation()}>
-		<h2>Checkout</h2>
+		<h2>{$t("checkout.title")}</h2>
 
 		<div class="summary">
 			{#each items as item (item.product.id)}
@@ -57,7 +62,7 @@
 				</div>
 			{/each}
 			<div class="summary-total">
-				<span>Total</span>
+				<span>{$t("checkout.total")}</span>
 				<span>{formatPrice(total)}</span>
 			</div>
 		</div>
@@ -68,21 +73,21 @@
 				class:selected={paymentMethod === "cash"}
 				onclick={() => selectPayment("cash")}
 			>
-				Cash
+				{$t("checkout.cash")}
 			</button>
 			<button
 				class="payment-btn"
 				class:selected={paymentMethod === "card"}
 				onclick={() => selectPayment("card")}
 			>
-				Card
+				{$t("checkout.card")}
 			</button>
 		</div>
 
 		{#if paymentMethod === "cash"}
 			<div class="cash-section">
 				<label>
-					Amount received
+					{$t("checkout.amountReceived")}
 					<input
 						type="text"
 						inputmode="decimal"
@@ -92,16 +97,16 @@
 				</label>
 				{#if cashReceivedCents >= total}
 					<div class="change">
-						Change: <strong>{formatPrice(change)}</strong>
+						{$t("checkout.change")} <strong>{formatPrice(change)}</strong>
 					</div>
 				{/if}
 			</div>
 		{/if}
 
 		<div class="modal-actions">
-			<button class="btn btn-cancel" onclick={onCancel} disabled={isSubmitting}>Cancel</button>
+			<button class="btn btn-cancel" onclick={onCancel} disabled={isSubmitting}>{$t("checkout.cancel")}</button>
 			<button class="btn btn-confirm" onclick={handleConfirm} disabled={!canConfirm}>
-				{isSubmitting ? "Submitting..." : "Confirm"}
+				{isSubmitting ? $t("checkout.submitting") : $t("checkout.confirm")}
 			</button>
 		</div>
 	</div>
