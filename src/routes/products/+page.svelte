@@ -94,6 +94,18 @@
 		}
 	}
 
+	async function deleteProduct(product: Product) {
+		const confirmed = window.confirm($t("products.deleteConfirm", { name: product.name }));
+		if (!confirmed) return;
+
+		try {
+			await invoke("delete_product", { productId: product.id });
+			await loadData();
+		} catch (e) {
+			error = $t("products.deleteError", { error: String(e) });
+		}
+	}
+
 </script>
 
 <div class="products-page">
@@ -143,9 +155,12 @@
 									{product.available ? $t("products.yes") : $t("products.no")}
 								</button>
 							</td>
-							<td>
+							<td class="actions-cell">
 								<button class="btn btn-edit" onclick={() => openEdit(product)}>
 									{$t("products.edit")}
+								</button>
+								<button class="btn btn-delete" onclick={() => deleteProduct(product)}>
+									{$t("products.delete")}
 								</button>
 							</td>
 						</tr>
@@ -276,6 +291,27 @@
 		background: #e5e5e5;
 	}
 
+	.actions-cell {
+		display: flex;
+		gap: 6px;
+	}
+
+	.btn-delete {
+		padding: 4px 14px;
+		background: #fee2e2;
+		border: 1px solid #fca5a5;
+		border-radius: 6px;
+		font-size: 0.85rem;
+		font-weight: 600;
+		cursor: pointer;
+		min-height: 32px;
+		color: #991b1b;
+	}
+
+	.btn-delete:hover {
+		background: #fecaca;
+	}
+
 	.status-msg {
 		display: flex;
 		align-items: center;
@@ -324,6 +360,16 @@
 
 		.btn-edit:hover {
 			background: #444;
+		}
+
+		.btn-delete {
+			background: #7f1d1d;
+			color: #fca5a5;
+			border-color: #991b1b;
+		}
+
+		.btn-delete:hover {
+			background: #991b1b;
 		}
 	}
 </style>

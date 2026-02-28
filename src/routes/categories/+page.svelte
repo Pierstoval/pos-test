@@ -42,6 +42,18 @@
 		editingCategory = null;
 	}
 
+	async function deleteCategory(category: Category) {
+		const confirmed = window.confirm($t("categories.deleteConfirm", { label: category.label }));
+		if (!confirmed) return;
+
+		try {
+			await invoke("delete_category", { categoryId: category.id });
+			await loadCategories();
+		} catch (e) {
+			error = $t("categories.deleteError", { error: String(e) });
+		}
+	}
+
 	async function handleSave(data: { id: string; label: string; color: string }) {
 		try {
 			if (editingCategory) {
@@ -103,9 +115,12 @@
 								></span>
 								<code>{cat.color}</code>
 							</td>
-							<td>
+							<td class="actions-cell">
 								<button class="btn btn-edit" onclick={() => openEdit(cat)}>
 									{$t("categories.edit")}
+								</button>
+								<button class="btn btn-delete" onclick={() => deleteCategory(cat)}>
+									{$t("categories.delete")}
 								</button>
 							</td>
 						</tr>
@@ -217,6 +232,27 @@
 		background: #e5e5e5;
 	}
 
+	.actions-cell {
+		display: flex;
+		gap: 6px;
+	}
+
+	.btn-delete {
+		padding: 4px 14px;
+		background: #fee2e2;
+		border: 1px solid #fca5a5;
+		border-radius: 6px;
+		font-size: 0.85rem;
+		font-weight: 600;
+		cursor: pointer;
+		min-height: 32px;
+		color: #991b1b;
+	}
+
+	.btn-delete:hover {
+		background: #fecaca;
+	}
+
 	.status-msg {
 		display: flex;
 		align-items: center;
@@ -253,6 +289,16 @@
 
 		.btn-edit:hover {
 			background: #444;
+		}
+
+		.btn-delete {
+			background: #7f1d1d;
+			color: #fca5a5;
+			border-color: #991b1b;
+		}
+
+		.btn-delete:hover {
+			background: #991b1b;
 		}
 	}
 </style>

@@ -29,6 +29,8 @@ pub fn run() {
             create_product,
             update_product,
             toggle_product_availability,
+            delete_product,
+            delete_category,
             create_order,
             list_orders,
             get_dashboard_summary,

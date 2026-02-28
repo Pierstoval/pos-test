@@ -71,6 +71,9 @@
     "yes": "Yes",
     "no": "No",
     "edit": "Edit",
+    "delete": "Delete",
+    "deleteConfirm": "Are you sure you want to delete the product \"{name}\"? This action cannot be undone.",
+    "deleteError": "Failed to delete product: {error}",
     "loadError": "Failed to load data: {error}",
     "saveError": "Failed to save product: {error}",
     "toggleError": "Failed to toggle availability: {error}"
@@ -85,6 +88,9 @@
     "colColor": "Color",
     "colActions": "Actions",
     "edit": "Edit",
+    "delete": "Delete",
+    "deleteConfirm": "Are you sure you want to delete the category \"{label}\"? This action cannot be undone.",
+    "deleteError": "Failed to delete category: {error}",
     "loadError": "Failed to load categories: {error}",
     "saveError": "Failed to save category: {error}"
   },

@@ -71,6 +71,9 @@
     "yes": "Oui",
     "no": "Non",
     "edit": "Modifier",
+    "delete": "Supprimer",
+    "deleteConfirm": "Voulez-vous vraiment supprimer le produit \"{name}\" ? Cette action est irréversible.",
+    "deleteError": "Échec de la suppression du produit : {error}",
     "loadError": "Échec du chargement des données : {error}",
     "saveError": "Échec de l'enregistrement du produit : {error}",
     "toggleError": "Échec du changement de disponibilité : {error}"
@@ -85,6 +88,9 @@
     "colColor": "Couleur",
     "colActions": "Actions",
     "edit": "Modifier",
+    "delete": "Supprimer",
+    "deleteConfirm": "Voulez-vous vraiment supprimer la catégorie \"{label}\" ? Cette action est irréversible.",
+    "deleteError": "Échec de la suppression de la catégorie : {error}",
     "loadError": "Échec du chargement des catégories : {error}",
     "saveError": "Échec de l'enregistrement de la catégorie : {error}"
   },

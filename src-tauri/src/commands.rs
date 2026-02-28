@@ -442,6 +442,72 @@ pub(crate) fn get_dashboard_summary_inner(db: &DbState) -> Result<DashboardSumma
     })
 }
 
+pub(crate) fn delete_product_inner(db: &DbState, product_id: String) -> Result<(), String> {
+    let conn = db
+        .conn
+        .lock()
+        .map_err(|e| format!("DB lock error: {e}"))?;
+
+    // Check whether any order items reference this product.
+    let order_item_count: i64 = conn
+        .query_row(
+            "SELECT COUNT(*) FROM order_items WHERE product_id = ?1",
+            params![product_id],
+            |row| row.get(0),
+        )
+        .map_err(|e| format!("Query error: {e}"))?;
+
+    if order_item_count > 0 {
+        return Err(format!(
+            "Cannot delete product '{}': it is referenced by {} order item(s)",
+            product_id, order_item_count
+        ));
+    }
+
+    let rows_affected = conn
+        .execute("DELETE FROM products WHERE id = ?1", params![product_id])
+        .map_err(|e| format!("Delete error: {e}"))?;
+
+    if rows_affected == 0 {
+        return Err(format!("Product not found: {}", product_id));
+    }
+
+    Ok(())
+}
+
+pub(crate) fn delete_category_inner(db: &DbState, category_id: String) -> Result<(), String> {
+    let conn = db
+        .conn
+        .lock()
+        .map_err(|e| format!("DB lock error: {e}"))?;
+
+    // Check whether any products reference this category.
+    let product_count: i64 = conn
+        .query_row(
+            "SELECT COUNT(*) FROM products WHERE category_id = ?1",
+            params![category_id],
+            |row| row.get(0),
+        )
+        .map_err(|e| format!("Query error: {e}"))?;
+
+    if product_count > 0 {
+        return Err(format!(
+            "Cannot delete category '{}': it is referenced by {} product(s)",
+            category_id, product_count
+        ));
+    }
+
+    let rows_affected = conn
+        .execute("DELETE FROM categories WHERE id = ?1", params![category_id])
+        .map_err(|e| format!("Delete error: {e}"))?;
+
+    if rows_affected == 0 {
+        return Err(format!("Category not found: {}", category_id));
+    }
+
+    Ok(())
+}
+
 pub(crate) fn reset_database_inner(db: &DbState) -> Result<(), String> {
     let conn = db
         .conn
@@ -512,6 +578,16 @@ pub fn toggle_product_availability(
     product_id: String,
 ) -> Result<bool, String> {
     toggle_product_availability_inner(&state, product_id)
+}
+
+#[tauri::command]
+pub fn delete_product(state: State<'_, DbState>, product_id: String) -> Result<(), String> {
+    delete_product_inner(&state, product_id)
+}
+
+#[tauri::command]
+pub fn delete_category(state: State<'_, DbState>, category_id: String) -> Result<(), String> {
+    delete_category_inner(&state, category_id)
 }
 
 #[tauri::command]
@@ -755,5 +831,91 @@ mod tests {
         assert_eq!(summary.per_payment_method[1].payment_method, PaymentMethod::Cash);
         assert_eq!(summary.per_payment_method[1].total_revenue, 400);
         assert_eq!(summary.per_payment_method[1].transaction_count, 1);
+    }
+
+    #[test]
+    fn delete_product_success() {
+        let db = init_db_in_memory();
+        let p = make_product(&db, "Temp Item", 100, "snack");
+
+        let before = list_products_inner(&db).unwrap().len();
+        delete_product_inner(&db, p.id.clone()).unwrap();
+        let after = list_products_inner(&db).unwrap().len();
+
+        assert_eq!(after, before - 1);
+        assert!(list_products_inner(&db).unwrap().iter().all(|prod| prod.id != p.id));
+    }
+
+    #[test]
+    fn delete_product_not_found() {
+        let db = init_db_in_memory();
+        let result = delete_product_inner(&db, "nonexistent".to_string());
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("Product not found"));
+    }
+
+    #[test]
+    fn delete_product_with_order_items_fails() {
+        let db = init_db_in_memory();
+        let p = make_product(&db, "Ordered Item", 200, "snack");
+
+        // Create an order referencing this product.
+        create_order_inner(
+            &db,
+            CreateOrderPayload {
+                items: vec![CreateOrderItemPayload {
+                    product_id: p.id.clone(),
+                    product_name: "Ordered Item".to_string(),
+                    unit_price: 200,
+                    quantity: 1,
+                }],
+                payment_method: PaymentMethod::Cash,
+            },
+        )
+        .unwrap();
+
+        let result = delete_product_inner(&db, p.id);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("referenced by"));
+    }
+
+    #[test]
+    fn delete_category_success() {
+        let db = init_db_in_memory();
+
+        // Create a fresh category with no products.
+        create_category_inner(
+            &db,
+            CreateCategoryPayload {
+                id: "test-cat".to_string(),
+                label: "Test Cat".to_string(),
+                color: "#ff0000".to_string(),
+            },
+        )
+        .unwrap();
+
+        let before = list_categories_inner(&db).unwrap().len();
+        delete_category_inner(&db, "test-cat".to_string()).unwrap();
+        let after = list_categories_inner(&db).unwrap().len();
+
+        assert_eq!(after, before - 1);
+    }
+
+    #[test]
+    fn delete_category_not_found() {
+        let db = init_db_in_memory();
+        let result = delete_category_inner(&db, "nonexistent".to_string());
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("Category not found"));
+    }
+
+    #[test]
+    fn delete_category_with_products_fails() {
+        let db = init_db_in_memory();
+
+        // The "snack" category has default products referencing it.
+        let result = delete_category_inner(&db, "snack".to_string());
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("referenced by"));
     }
 }
