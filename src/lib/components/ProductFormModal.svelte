@@ -1,17 +1,18 @@
 <script lang="ts">
-	import type { Product } from "$lib/types";
+	import type { Product, Category } from "$lib/types";
 
 	interface Props {
 		product: Product | null;
-		onSave: (data: { name: string; price: number; category: string; available: boolean }) => void;
+		categories: Category[];
+		onSave: (data: { name: string; price: number; category_id: string; available: boolean }) => void;
 		onCancel: () => void;
 	}
 
-	let { product, onSave, onCancel }: Props = $props();
+	let { product, categories, onSave, onCancel }: Props = $props();
 
 	let name = $state(product?.name ?? "");
 	let priceInput = $state(product ? (product.price / 100).toFixed(2).replace(".", ",") : "");
-	let category = $state(product?.category ?? "snack");
+	let category_id = $state(product?.category_id ?? categories[0]?.id ?? "");
 	let available = $state(product?.available ?? true);
 	let isSubmitting = $state(false);
 
@@ -21,13 +22,13 @@
 	});
 
 	let canSave = $derived(
-		!isSubmitting && name.trim().length > 0 && priceCents > 0 && category.length > 0,
+		!isSubmitting && name.trim().length > 0 && priceCents > 0 && category_id.length > 0,
 	);
 
 	function handleSubmit() {
 		if (!canSave) return;
 		isSubmitting = true;
-		onSave({ name: name.trim(), price: priceCents, category, available });
+		onSave({ name: name.trim(), price: priceCents, category_id, available });
 	}
 </script>
 
@@ -55,22 +56,12 @@
 
 		<fieldset class="form-field radio-group">
 			<legend>Category</legend>
-			<label>
-				<input type="radio" name="category" value="snack" bind:group={category} />
-				🥪&nbsp;Snack
-			</label>
-			<label>
-				<input type="radio" name="category" value="soft_drink" bind:group={category} />
-				🥤&nbsp;Soft drink
-			</label>
-			<label>
-				<input type="radio" name="category" value="alcohol" bind:group={category} />
-				🍺&nbsp;Alcohol
-			</label>
-			<label>
-				<input type="radio" name="category" value="sweets" bind:group={category} />
-				🍫&nbsp;Sweets
-			</label>
+			{#each categories as cat (cat.id)}
+				<label>
+					<input type="radio" name="category" value={cat.id} bind:group={category_id} />
+					{cat.label}
+				</label>
+			{/each}
 		</fieldset>
 
 		{#if product}

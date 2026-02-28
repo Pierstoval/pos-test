@@ -1,12 +1,13 @@
 <script lang="ts">
 	import { onMount } from "svelte";
 	import { invoke } from "@tauri-apps/api/core";
-	import type { Product, CartItem, OrderWithItems, CreateOrderPayload } from "$lib/types";
+	import type { Product, Category, CartItem, OrderWithItems, CreateOrderPayload } from "$lib/types";
 	import ProductGrid from "$lib/components/ProductGrid.svelte";
 	import OrderPanel from "$lib/components/OrderPanel.svelte";
 	import CheckoutModal from "$lib/components/CheckoutModal.svelte";
 
 	let products = $state<Product[]>([]);
+	let categories = $state<Category[]>([]);
 	let cart = $state<CartItem[]>([]);
 	let isCheckoutOpen = $state(false);
 	let isLoading = $state(true);
@@ -16,9 +17,12 @@
 
 	onMount(async () => {
 		try {
-			products = await invoke<Product[]>("list_products");
+			[products, categories] = await Promise.all([
+				invoke<Product[]>("list_products"),
+				invoke<Category[]>("list_categories"),
+			]);
 		} catch (e) {
-			error = `Failed to load products: ${e}`;
+			error = `Failed to load data: ${e}`;
 		} finally {
 			isLoading = false;
 		}
@@ -80,7 +84,7 @@
 		<div class="status-msg error">{error}</div>
 	{:else}
 		<main class="product-area">
-			<ProductGrid {products} onProductClick={addToCart} />
+			<ProductGrid {products} {categories} onProductClick={addToCart} />
 		</main>
 		<div class="sidebar">
 			<OrderPanel

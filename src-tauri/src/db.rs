@@ -16,6 +16,7 @@ pub fn init_db_in_memory() -> DbState {
     conn.execute_batch("PRAGMA foreign_keys=ON;")
         .expect("Failed to enable foreign keys");
     create_tables(&conn).expect("Failed to create tables");
+    create_default_data(&conn);
     DbState {
         conn: Mutex::new(conn),
     }
@@ -50,6 +51,7 @@ pub fn init_db(app_handle: &AppHandle) -> Result<DbState, String> {
         .map_err(|e| format!("Failed to enable foreign keys: {e}"))?;
 
     create_tables(&conn)?;
+    create_default_data(&conn);
 
     Ok(DbState {
         conn: Mutex::new(conn),
@@ -60,12 +62,19 @@ pub fn init_db(app_handle: &AppHandle) -> Result<DbState, String> {
 pub fn create_tables(conn: &Connection) -> Result<(), String> {
     conn.execute_batch(
         "
+        CREATE TABLE IF NOT EXISTS categories (
+            id    TEXT PRIMARY KEY NOT NULL,
+            label TEXT NOT NULL,
+            color TEXT NOT NULL
+        );
+
         CREATE TABLE IF NOT EXISTS products (
-            id        TEXT PRIMARY KEY NOT NULL,
-            name      TEXT NOT NULL,
-            price     INTEGER NOT NULL,
-            category  TEXT NOT NULL CHECK (category IN ('snack', 'soft_drink', 'alcohol', 'sweets')),
-            available INTEGER NOT NULL DEFAULT 1
+            id          TEXT PRIMARY KEY NOT NULL,
+            name        TEXT NOT NULL,
+            price       INTEGER NOT NULL,
+            category_id TEXT NOT NULL,
+            available   INTEGER NOT NULL DEFAULT 1,
+            FOREIGN KEY (category_id) REFERENCES categories(id)
         );
 
         CREATE TABLE IF NOT EXISTS orders (
@@ -94,4 +103,22 @@ pub fn create_tables(conn: &Connection) -> Result<(), String> {
     .map_err(|e| format!("Failed to create tables: {e}"))?;
 
     Ok(())
+}
+
+/// Inserts the default categories if they do not already exist.
+pub fn create_default_data(conn: &Connection) {
+    let defaults = [
+        ("snack", "Snack", "#e8a735"),
+        ("soft_drink", "Soft drink", "#3b82f6"),
+        ("alcohol", "Alcohol", "#8b5cf6"),
+        ("sweets", "Sweets", "#e84393"),
+        ("other", "Other", "#6b7280"),
+    ];
+    for (id, label, color) in &defaults {
+        conn.execute(
+            "INSERT OR IGNORE INTO categories (id, label, color) VALUES (?1, ?2, ?3)",
+            rusqlite::params![id, label, color],
+        )
+        .expect("Failed to insert default category");
+    }
 }

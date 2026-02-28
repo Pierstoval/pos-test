@@ -16,6 +16,7 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            list_categories,
             list_products,
             create_product,
             update_product,

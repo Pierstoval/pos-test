@@ -1,30 +1,35 @@
 <script lang="ts">
-	import type { Product } from "$lib/types";
+	import type { Product, Category } from "$lib/types";
 	import { formatPrice } from "$lib/utils/format";
 
 	interface Props {
 		products: Product[];
+		categories: Category[];
 		onProductClick: (product: Product) => void;
 	}
 
-	let { products, onProductClick }: Props = $props();
+	let { products, categories, onProductClick }: Props = $props();
 
-	let availableProducts = $derived(products.filter((p) => p.available));
+	let sortedProducts = $derived(
+		[...products].sort((a, b) => {
+			if (a.available !== b.available) return a.available ? -1 : 1;
+			return a.name.localeCompare(b.name);
+		}),
+	);
 
-	const categoryColors: Record<string, string> = {
-		snack: "#e8a735",
-		soft_drink: "#3b82f6",
-		alcohol: "#8b5cf6",
-		sweets: "#e84393",
-	};
+	let categoryColors = $derived(
+		Object.fromEntries(categories.map((c) => [c.id, c.color])),
+	);
 </script>
 
 <div class="product-grid">
-	{#each availableProducts as product (product.id)}
+	{#each sortedProducts as product (product.id)}
 		<button
 			class="product-btn"
-			style="--cat-color: {categoryColors[product.category] ?? '#888'}"
+			class:unavailable={!product.available}
+			style="--cat-color: {categoryColors[product.category_id] ?? '#888'}"
 			onclick={() => onProductClick(product)}
+			disabled={!product.available}
 		>
 			<span class="product-name">{product.name}</span>
 			<span class="product-price">{formatPrice(product.price)}</span>
@@ -41,6 +46,7 @@
 	}
 
 	.product-btn {
+		position: relative;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
@@ -55,17 +61,39 @@
 		font-size: 1rem;
 		font-weight: 600;
 		cursor: pointer;
+		overflow: hidden;
 		transition: filter 0.15s, transform 0.1s;
 		user-select: none;
 		-webkit-tap-highlight-color: transparent;
 	}
 
-	.product-btn:hover {
+	.product-btn:hover:not(:disabled) {
 		filter: brightness(1.1);
 	}
 
-	.product-btn:active {
+	.product-btn:active:not(:disabled) {
 		transform: scale(0.96);
+	}
+
+	.product-btn.unavailable {
+		background: #999;
+		border: 3px solid var(--cat-color);
+		opacity: 0.7;
+		cursor: not-allowed;
+	}
+
+	.product-btn.unavailable::after {
+		content: "";
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(
+			to bottom right,
+			transparent calc(50% - 2px),
+			#dc2626 calc(50% - 2px),
+			#dc2626 calc(50% + 2px),
+			transparent calc(50% + 2px)
+		);
+		pointer-events: none;
 	}
 
 	.product-price {

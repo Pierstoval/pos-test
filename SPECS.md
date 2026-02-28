@@ -125,3 +125,27 @@ A persistent navigation bar allows switching between the three screens.
 - The app is packaged as a desktop binary via Tauri. All data stays local.
 - The UI must be usable on a tablet (large touch targets, readable fonts).
 - Data must be stored in an SQLite database that is saved alongside the binary file. 
+
+---
+
+## Default products
+
+- Soft drinks:
+  - Tea, coffee: 1€
+  - Soda, fruit juice: 2€
+- Alcohol drinks:
+  - Beer (jug): 12€
+  - Beer (25cl): 3€
+  - Cider (sweet/dry): 3€
+- Glass deposit: 1€
+- Sweets:
+  - Candy/M&Ms/Twix...: 1€
+  - Sweet cake slice: 1€
+  - Crèpe nature: 2€
+  - Crèpe with sugar: 2,50€
+  - Crèpe with jam: 3,50€
+  - Crèpe with caramel: 3,50€
+  - Crèpe with Nutella: 3,50€
+- Salt cake: 1€
+- Sandwich: 4€
+- Panini: 4€

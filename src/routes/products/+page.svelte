@@ -1,27 +1,35 @@
 <script lang="ts">
 	import { onMount } from "svelte";
 	import { invoke } from "@tauri-apps/api/core";
-	import type { Product, CreateProductPayload, UpdateProductPayload } from "$lib/types";
+	import type { Product, Category, CreateProductPayload, UpdateProductPayload } from "$lib/types";
 	import { formatPrice } from "$lib/utils/format";
 	import ProductFormModal from "$lib/components/ProductFormModal.svelte";
 
 	let products = $state<Product[]>([]);
+	let categories = $state<Category[]>([]);
 	let editingProduct = $state<Product | null>(null);
 	let isFormOpen = $state(false);
 	let isLoading = $state(true);
 	let error = $state<string | null>(null);
 
+	let categoryMap = $derived(
+		Object.fromEntries(categories.map((c) => [c.id, c])),
+	);
+
 	onMount(async () => {
-		await loadProducts();
+		await loadData();
 	});
 
-	async function loadProducts() {
+	async function loadData() {
 		isLoading = true;
 		error = null;
 		try {
-			products = await invoke<Product[]>("list_products");
+			[products, categories] = await Promise.all([
+				invoke<Product[]>("list_products"),
+				invoke<Category[]>("list_categories"),
+			]);
 		} catch (e) {
-			error = `Failed to load products: ${e}`;
+			error = `Failed to load data: ${e}`;
 		} finally {
 			isLoading = false;
 		}
@@ -45,7 +53,7 @@
 	async function handleSave(data: {
 		name: string;
 		price: number;
-		category: string;
+		category_id: string;
 		available: boolean;
 	}) {
 		try {
@@ -54,7 +62,7 @@
 					id: editingProduct.id,
 					name: data.name,
 					price: data.price,
-					category: data.category,
+					category_id: data.category_id,
 					available: data.available,
 				};
 				await invoke<Product>("update_product", { payload });
@@ -62,12 +70,12 @@
 				const payload: CreateProductPayload = {
 					name: data.name,
 					price: data.price,
-					category: data.category,
+					category_id: data.category_id,
 				};
 				await invoke<Product>("create_product", { payload });
 			}
 			closeForm();
-			await loadProducts();
+			await loadData();
 		} catch (e) {
 			error = `Failed to save product: ${e}`;
 			closeForm();
@@ -85,20 +93,6 @@
 		}
 	}
 
-	function categoryLabel(cat: string): string {
-		switch (cat) {
-			case "snack":
-				return "🥪 Snack";
-			case "soft_drink":
-				return "🥤 Soft drink";
-			case "alcohol":
-				return "🍺 Alcohol";
-			case "sweets":
-				return "🍫 Sweets";
-			default:
-				return cat;
-		}
-	}
 </script>
 
 <div class="products-page">
@@ -131,9 +125,12 @@
 							<td>{product.name}</td>
 							<td class="price">{formatPrice(product.price)}</td>
 							<td>
-								<span class="badge badge-{product.category}"
-									>{categoryLabel(product.category)}</span
+								<span
+									class="badge"
+									style="background: {categoryMap[product.category_id]?.color ?? '#888'}22; color: {categoryMap[product.category_id]?.color ?? '#888'};"
 								>
+									{categoryMap[product.category_id]?.label ?? product.category_id}
+								</span>
 							</td>
 							<td>
 								<button
@@ -159,7 +156,7 @@
 </div>
 
 {#if isFormOpen}
-	<ProductFormModal product={editingProduct} onSave={handleSave} onCancel={closeForm} />
+	<ProductFormModal product={editingProduct} {categories} onSave={handleSave} onCancel={closeForm} />
 {/if}
 
 <style>
@@ -240,26 +237,6 @@
 		font-weight: 600;
 	}
 
-	.badge-snack {
-		background: #fef3c7;
-		color: #92400e;
-	}
-
-	.badge-soft_drink {
-		background: #dbeafe;
-		color: #1e40af;
-	}
-
-	.badge-alcohol {
-		background: #ede9fe;
-		color: #5b21b6;
-	}
-
-	.badge-sweets {
-		background: #fce7f3;
-		color: #9d174d;
-	}
-
 	.toggle-btn {
 		padding: 4px 14px;
 		border: 1px solid #ccc;
@@ -319,26 +296,6 @@
 
 		td {
 			border-bottom-color: #333;
-		}
-
-		.badge-snack {
-			background: #78350f;
-			color: #fef3c7;
-		}
-
-		.badge-soft_drink {
-			background: #1e3a5f;
-			color: #93c5fd;
-		}
-
-		.badge-alcohol {
-			background: #3b1f6e;
-			color: #c4b5fd;
-		}
-
-		.badge-sweets {
-			background: #831843;
-			color: #fbcfe8;
 		}
 
 		.toggle-btn {

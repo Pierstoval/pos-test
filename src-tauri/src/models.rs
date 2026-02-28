@@ -42,9 +42,19 @@ impl PaymentMethod {
     }
 }
 
+// ── Category ─────────────────────────────────────────────────────────────────
+
+/// A product category with display label and color.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Category {
+    pub id: String,
+    pub label: String,
+    pub color: String,
+}
+
 // ── Product ──────────────────────────────────────────────────────────────────
 
-/// A product in the catalog (snack, soft_drink, alcohol, or sweets).
+/// A product in the catalog.
 /// Prices are stored as integer cents to avoid floating-point errors.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Product {
@@ -52,8 +62,8 @@ pub struct Product {
     pub name: String,
     /// Price in cents (e.g. 150 = 1.50 EUR).
     pub price: i64,
-    /// One of "snack", "soft_drink", "alcohol", "sweets".
-    pub category: String,
+    /// Foreign key referencing the categories table.
+    pub category_id: String,
     /// Whether the product appears on the sales screen.
     pub available: bool,
 }
@@ -63,7 +73,7 @@ pub struct Product {
 pub struct CreateProductPayload {
     pub name: String,
     pub price: i64,
-    pub category: String,
+    pub category_id: String,
 }
 
 /// Payload sent from the frontend when updating an existing product.
@@ -72,7 +82,7 @@ pub struct UpdateProductPayload {
     pub id: String,
     pub name: String,
     pub price: i64,
-    pub category: String,
+    pub category_id: String,
     pub available: bool,
 }
 

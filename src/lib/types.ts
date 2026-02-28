@@ -1,10 +1,16 @@
+export interface Category {
+	id: string;
+	label: string;
+	color: string;
+}
+
 export interface Product {
 	id: string;
 	name: string;
 	/** Price in cents (e.g. 150 = 1.50 EUR). */
 	price: number;
-	/** One of "snack", "soft_drink", "alcohol", "sweets". */
-	category: string;
+	/** Foreign key referencing the categories table. */
+	category_id: string;
 	available: boolean;
 }
 
@@ -46,7 +52,7 @@ export interface CreateProductPayload {
 	name: string;
 	/** Price in cents. */
 	price: number;
-	category: string;
+	category_id: string;
 }
 
 export interface UpdateProductPayload {
@@ -54,7 +60,7 @@ export interface UpdateProductPayload {
 	name: string;
 	/** Price in cents. */
 	price: number;
-	category: string;
+	category_id: string;
 	available: boolean;
 }
 

@@ -7,6 +7,31 @@ use crate::models::*;
 
 // ── Inner functions (testable without Tauri runtime) ────────────────────────
 
+pub(crate) fn list_categories_inner(db: &DbState) -> Result<Vec<Category>, String> {
+    let conn = db
+        .conn
+        .lock()
+        .map_err(|e| format!("DB lock error: {e}"))?;
+
+    let mut stmt = conn
+        .prepare("SELECT id, label, color FROM categories ORDER BY label")
+        .map_err(|e| format!("Query error: {e}"))?;
+
+    let categories = stmt
+        .query_map([], |row| {
+            Ok(Category {
+                id: row.get(0)?,
+                label: row.get(1)?,
+                color: row.get(2)?,
+            })
+        })
+        .map_err(|e| format!("Query error: {e}"))?
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|e| format!("Row mapping error: {e}"))?;
+
+    Ok(categories)
+}
+
 pub(crate) fn list_products_inner(db: &DbState) -> Result<Vec<Product>, String> {
     let conn = db
         .conn
@@ -14,7 +39,7 @@ pub(crate) fn list_products_inner(db: &DbState) -> Result<Vec<Product>, String> 
         .map_err(|e| format!("DB lock error: {e}"))?;
 
     let mut stmt = conn
-        .prepare("SELECT id, name, price, category, available FROM products ORDER BY name")
+        .prepare("SELECT id, name, price, category_id, available FROM products ORDER BY name")
         .map_err(|e| format!("Query error: {e}"))?;
 
     let products = stmt
@@ -23,7 +48,7 @@ pub(crate) fn list_products_inner(db: &DbState) -> Result<Vec<Product>, String> 
                 id: row.get(0)?,
                 name: row.get(1)?,
                 price: row.get(2)?,
-                category: row.get(3)?,
+                category_id: row.get(3)?,
                 available: row.get::<_, i64>(4)? != 0,
             })
         })
@@ -46,8 +71,8 @@ pub(crate) fn create_product_inner(
     let id = Uuid::new_v4().to_string();
 
     conn.execute(
-        "INSERT INTO products (id, name, price, category, available) VALUES (?1, ?2, ?3, ?4, 1)",
-        params![id, payload.name, payload.price, payload.category],
+        "INSERT INTO products (id, name, price, category_id, available) VALUES (?1, ?2, ?3, ?4, 1)",
+        params![id, payload.name, payload.price, payload.category_id],
     )
     .map_err(|e| format!("Insert error: {e}"))?;
 
@@ -55,7 +80,7 @@ pub(crate) fn create_product_inner(
         id,
         name: payload.name,
         price: payload.price,
-        category: payload.category,
+        category_id: payload.category_id,
         available: true,
     })
 }
@@ -73,11 +98,11 @@ pub(crate) fn update_product_inner(
 
     let rows_affected = conn
         .execute(
-            "UPDATE products SET name = ?1, price = ?2, category = ?3, available = ?4 WHERE id = ?5",
+            "UPDATE products SET name = ?1, price = ?2, category_id = ?3, available = ?4 WHERE id = ?5",
             params![
                 payload.name,
                 payload.price,
-                payload.category,
+                payload.category_id,
                 available_int,
                 payload.id
             ],
@@ -92,7 +117,7 @@ pub(crate) fn update_product_inner(
         id: payload.id,
         name: payload.name,
         price: payload.price,
-        category: payload.category,
+        category_id: payload.category_id,
         available: payload.available,
     })
 }
@@ -377,16 +402,23 @@ pub(crate) fn reset_database_inner(db: &DbState) -> Result<(), String> {
     conn.execute_batch(
         "DROP TABLE IF EXISTS order_items;
          DROP TABLE IF EXISTS orders;
-         DROP TABLE IF EXISTS products;",
+         DROP TABLE IF EXISTS products;
+         DROP TABLE IF EXISTS categories;",
     )
     .map_err(|e| format!("Drop tables error: {e}"))?;
 
     crate::db::create_tables(&conn)?;
+    crate::db::create_default_data(&conn);
 
     Ok(())
 }
 
 // ── Tauri command wrappers ──────────────────────────────────────────────────
+
+#[tauri::command]
+pub fn list_categories(state: State<'_, DbState>) -> Result<Vec<Category>, String> {
+    list_categories_inner(&state)
+}
 
 #[tauri::command]
 pub fn list_products(state: State<'_, DbState>) -> Result<Vec<Product>, String> {
@@ -447,13 +479,13 @@ mod tests {
     use super::*;
     use crate::db::init_db_in_memory;
 
-    fn make_product(db: &DbState, name: &str, price: i64, category: &str) -> Product {
+    fn make_product(db: &DbState, name: &str, price: i64, category_id: &str) -> Product {
         create_product_inner(
             db,
             CreateProductPayload {
                 name: name.to_string(),
                 price,
-                category: category.to_string(),
+                category_id: category_id.to_string(),
             },
         )
         .expect("create_product_inner failed")
@@ -472,7 +504,7 @@ mod tests {
         let created = make_product(&db, "Cola", 150, "soft_drink");
         assert_eq!(created.name, "Cola");
         assert_eq!(created.price, 150);
-        assert_eq!(created.category, "soft_drink");
+        assert_eq!(created.category_id, "soft_drink");
         assert!(created.available);
 
         let products = list_products_inner(&db).unwrap();
@@ -492,7 +524,7 @@ mod tests {
                 id: p.id.clone(),
                 name: "Crisps".to_string(),
                 price: 250,
-                category: "snack".to_string(),
+                category_id: "snack".to_string(),
                 available: false,
             },
         )
@@ -518,7 +550,7 @@ mod tests {
                 id: "nonexistent".to_string(),
                 name: "X".to_string(),
                 price: 100,
-                category: "snack".to_string(),
+                category_id: "snack".to_string(),
                 available: true,
             },
         );
