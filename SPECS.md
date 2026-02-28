@@ -72,13 +72,13 @@ Optional stock tracking for products.
 
 ### Product
 
-| Field     | Type    | Description                         |
-|-----------|---------|-------------------------------------|
-| id        | string  | Unique identifier (UUID or similar) |
-| name      | string  | Display name                        |
-| price     | number  | Price in cents (integer)            |
-| category  | string  | `"snack"`, `"drink"`, `"sweets"`    |
-| available | boolean | Whether the product is sellable     |
+| Field     | Type    | Description                                              |
+|-----------|---------|----------------------------------------------------------|
+| id        | string  | Unique identifier (UUID or similar)                      |
+| name      | string  | Display name                                             |
+| price     | number  | Price in cents (integer)                                 |
+| category  | string  | `"snack"`, `"soft_drink"`; `"alcohol_drink"`, `"sweets"` |
+| available | boolean | Whether the product is sellable                          |
 
 ### Order
 

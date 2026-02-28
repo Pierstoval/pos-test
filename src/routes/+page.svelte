@@ -1,156 +1,160 @@
 <script lang="ts">
-  import { invoke } from "@tauri-apps/api/core";
+	import { onMount } from "svelte";
+	import { invoke } from "@tauri-apps/api/core";
+	import type { Product, CartItem, OrderWithItems, CreateOrderPayload } from "$lib/types";
+	import ProductGrid from "$lib/components/ProductGrid.svelte";
+	import OrderPanel from "$lib/components/OrderPanel.svelte";
+	import CheckoutModal from "$lib/components/CheckoutModal.svelte";
 
-  let name = $state("");
-  let greetMsg = $state("");
+	let products = $state<Product[]>([]);
+	let cart = $state<CartItem[]>([]);
+	let isCheckoutOpen = $state(false);
+	let isLoading = $state(true);
+	let error = $state<string | null>(null);
 
-  async function greet(event: Event) {
-    event.preventDefault();
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    greetMsg = await invoke("greet", { name });
-  }
+	let cartTotal = $derived(cart.reduce((sum, i) => sum + i.product.price * i.quantity, 0));
+
+	onMount(async () => {
+		try {
+			products = await invoke<Product[]>("list_products");
+		} catch (e) {
+			error = `Failed to load products: ${e}`;
+		} finally {
+			isLoading = false;
+		}
+	});
+
+	function addToCart(product: Product) {
+		const existing = cart.find((i) => i.product.id === product.id);
+		if (existing) {
+			cart = cart.map((i) =>
+				i.product.id === product.id ? { ...i, quantity: i.quantity + 1 } : i,
+			);
+		} else {
+			cart = [...cart, { product, quantity: 1 }];
+		}
+	}
+
+	function increaseQuantity(productId: string) {
+		cart = cart.map((i) =>
+			i.product.id === productId ? { ...i, quantity: i.quantity + 1 } : i,
+		);
+	}
+
+	function decreaseQuantity(productId: string) {
+		cart = cart
+			.map((i) => (i.product.id === productId ? { ...i, quantity: i.quantity - 1 } : i))
+			.filter((i) => i.quantity > 0);
+	}
+
+	function clearCart() {
+		cart = [];
+	}
+
+	async function submitOrder(paymentMethod: "cash" | "card") {
+		const payload: CreateOrderPayload = {
+			items: cart.map((i) => ({
+				product_id: i.product.id,
+				product_name: i.product.name,
+				unit_price: i.product.price,
+				quantity: i.quantity,
+			})),
+			payment_method: paymentMethod,
+		};
+
+		try {
+			await invoke<OrderWithItems>("create_order", { payload });
+			cart = [];
+			isCheckoutOpen = false;
+		} catch (e) {
+			error = `Order failed: ${e}`;
+			isCheckoutOpen = false;
+		}
+	}
 </script>
 
-<main class="container">
-  <h1>Welcome to Tauri + Svelte</h1>
+<div class="sales-screen">
+	{#if isLoading}
+		<div class="status-msg">Loading products...</div>
+	{:else if error}
+		<div class="status-msg error">{error}</div>
+	{:else}
+		<main class="product-area">
+			<ProductGrid {products} onProductClick={addToCart} />
+		</main>
+		<div class="sidebar">
+			<OrderPanel
+				items={cart}
+				onIncrease={increaseQuantity}
+				onDecrease={decreaseQuantity}
+				onCheckout={() => (isCheckoutOpen = true)}
+				onClear={clearCart}
+			/>
+		</div>
+	{/if}
+</div>
 
-  <div class="row">
-    <a href="https://vite.dev" target="_blank">
-      <img src="/vite.svg" class="logo vite" alt="Vite Logo" />
-    </a>
-    <a href="https://tauri.app" target="_blank">
-      <img src="/tauri.svg" class="logo tauri" alt="Tauri Logo" />
-    </a>
-    <a href="https://svelte.dev" target="_blank">
-      <img src="/svelte.svg" class="logo svelte-kit" alt="SvelteKit Logo" />
-    </a>
-  </div>
-  <p>Click on the Tauri, Vite, and SvelteKit logos to learn more.</p>
-
-  <form class="row" onsubmit={greet}>
-    <input id="greet-input" placeholder="Enter a name..." bind:value={name} />
-    <button type="submit">Greet</button>
-  </form>
-  <p>{greetMsg}</p>
-</main>
+{#if isCheckoutOpen}
+	<CheckoutModal
+		items={cart}
+		total={cartTotal}
+		onConfirm={submitOrder}
+		onCancel={() => (isCheckoutOpen = false)}
+	/>
+{/if}
 
 <style>
-.logo.vite:hover {
-  filter: drop-shadow(0 0 2em #747bff);
-}
+	.sales-screen {
+		display: grid;
+		grid-template-columns: 1fr 360px;
+		height: calc(100vh - 48px);
+	}
 
-.logo.svelte-kit:hover {
-  filter: drop-shadow(0 0 2em #ff3e00);
-}
+	.product-area {
+		overflow-y: auto;
+	}
 
-:root {
-  font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
-  font-size: 16px;
-  line-height: 24px;
-  font-weight: 400;
+	.sidebar {
+		height: calc(100vh - 48px);
+		overflow: hidden;
+	}
 
-  color: #0f0f0f;
-  background-color: #f6f6f6;
+	.status-msg {
+		grid-column: 1 / -1;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		height: calc(100vh - 48px);
+		font-size: 1.2rem;
+		color: #888;
+	}
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-text-size-adjust: 100%;
-}
+	.status-msg.error {
+		color: #dc2626;
+	}
 
-.container {
-  margin: 0;
-  padding-top: 10vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  text-align: center;
-}
+	@media (max-width: 700px) {
+		.sales-screen {
+			grid-template-columns: 1fr;
+			grid-template-rows: 1fr auto;
+			height: calc(100vh - 48px);
+		}
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: 0.75s;
-}
+		.product-area {
+			overflow-y: auto;
+		}
 
-.logo.tauri:hover {
-  filter: drop-shadow(0 0 2em #24c8db);
-}
+		.sidebar {
+			height: auto;
+			max-height: 40vh;
+			overflow-y: auto;
+			border-top: 1px solid #e0e0e0;
+		}
+	}
 
-.row {
-  display: flex;
-  justify-content: center;
-}
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-
-a:hover {
-  color: #535bf2;
-}
-
-h1 {
-  text-align: center;
-}
-
-input,
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  color: #0f0f0f;
-  background-color: #ffffff;
-  transition: border-color 0.25s;
-  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
-}
-
-button {
-  cursor: pointer;
-}
-
-button:hover {
-  border-color: #396cd8;
-}
-button:active {
-  border-color: #396cd8;
-  background-color: #e8e8e8;
-}
-
-input,
-button {
-  outline: none;
-}
-
-#greet-input {
-  margin-right: 5px;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    color: #f6f6f6;
-    background-color: #2f2f2f;
-  }
-
-  a:hover {
-    color: #24c8db;
-  }
-
-  input,
-  button {
-    color: #ffffff;
-    background-color: #0f0f0f98;
-  }
-  button:active {
-    background-color: #0f0f0f69;
-  }
-}
-
+	@media (prefers-color-scheme: dark) {
+		.sidebar {
+			border-left-color: #444;
+		}
+	}
 </style>
