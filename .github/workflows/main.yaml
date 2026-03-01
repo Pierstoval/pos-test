@@ -73,9 +73,6 @@ jobs:
               working-directory: src-tauri
               run: cargo fetch
 
-            - name: 🏗️ 📄 Build frontend
-              run: pnpm run build
-
             - name: 🏗️ 💽 Build application
               run: pnpm run tauri build
 
