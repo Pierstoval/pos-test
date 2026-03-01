@@ -11,4 +11,4 @@ git tag -m $tag $tag
 
 git push origin main --tags
 
-gh release create $tag --prerelease --title=$tag
+gh release create $tag --prerelease --title $tag --notes ""
