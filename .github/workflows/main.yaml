@@ -12,7 +12,7 @@ on:
 # so only the tag workflow (with build + release) proceeds.
 concurrency:
     group: build-${{ github.sha }}
-    cancel-in-progress: true
+    cancel-in-progress: ${{ !contains(github.ref, 'refs/tags/')}}
 
 jobs:
     build:
