@@ -7,6 +7,13 @@ on:
     pull_request:
         branches: [ main ]
 
+# When a branch push and a tag push happen for the same commit (same SHA),
+# the later event (tag) cancels the in-progress branch push run,
+# so only the tag workflow (with build + release) proceeds.
+concurrency:
+    group: build-${{ github.sha }}
+    cancel-in-progress: true
+
 jobs:
     build:
         strategy:
@@ -112,6 +119,10 @@ jobs:
 
             - name: Create release
               uses: softprops/action-gh-release@v2
+              with:
+                  tag_name: ${{ github.ref_name }}
+                  generate_release_notes: true
+                  token: ${{ secrets.GITHUB_TOKEN }}
 
             - name: 🗃 Download built artifacts
               uses: actions/download-artifact@v4
