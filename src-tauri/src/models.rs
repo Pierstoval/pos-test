@@ -2,6 +2,15 @@ use std::fmt;
 
 use serde::{Deserialize, Serialize};
 
+// ── AppVersion ──────────────────────────────────────────────────────────────
+
+#[derive(Debug, Clone, Serialize)]
+pub struct AppVersion {
+    pub version: String,
+    pub os: String,
+    pub arch: String,
+}
+
 // ── PaymentMethod ───────────────────────────────────────────────────────────
 
 /// The accepted payment methods.

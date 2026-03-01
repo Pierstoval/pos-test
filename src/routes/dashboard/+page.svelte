@@ -3,20 +3,22 @@
 	import { api_call } from "$lib/api";
 	import { save } from "@tauri-apps/plugin-dialog";
 	import { writeFile } from "@tauri-apps/plugin-fs";
-	import type { DashboardSummary } from "$lib/types";
+	import type { DashboardSummary, AppVersion } from "$lib/types";
 	import { formatPrice } from "$lib/utils/format";
 	import { t } from "$lib/i18n";
 
 	let summary = $state<DashboardSummary | null>(null);
 	let dbPath = $state<string | null>(null);
+	let appVersion = $state<AppVersion | null>(null);
 	let isLoading = $state(true);
 	let error = $state<string | null>(null);
 
 	onMount(async () => {
 		try {
-			[summary, dbPath] = await Promise.all([
+			[summary, dbPath, appVersion] = await Promise.all([
 				api_call<DashboardSummary>("get_dashboard_summary"),
 				api_call<string>("get_db_path"),
+				api_call<AppVersion>("get_app_version"),
 			]);
 		} catch (e) {
 			error = $t("dashboard.loadError", { error: String(e) });
@@ -163,10 +165,15 @@
 		</section>
 	{/if}
 
-	{#if dbPath}
+	{#if dbPath || appVersion}
 		<section class="app-info">
 			<h2>{$t("dashboard.appInfo")}</h2>
-			<p><span class="info-label">{$t("dashboard.dbPath")} :</span> <code>{dbPath}</code></p>
+			{#if appVersion}
+				<p><span class="info-label">{$t("dashboard.version")} :</span> <code>{appVersion.version}</code> ({appVersion.os}/{appVersion.arch})</p>
+			{/if}
+			{#if dbPath}
+				<p><span class="info-label">{$t("dashboard.dbPath")} :</span> <code>{dbPath}</code></p>
+			{/if}
 		</section>
 	{/if}
 </div>

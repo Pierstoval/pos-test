@@ -618,6 +618,15 @@ pub fn get_db_path(state: State<'_, DbState>) -> String {
     state.db_path.clone()
 }
 
+#[tauri::command]
+pub fn get_app_version() -> AppVersion {
+    AppVersion {
+        version: env!("APP_VERSION").to_string(),
+        os: env!("APP_OS").to_string(),
+        arch: env!("APP_ARCH").to_string(),
+    }
+}
+
 // ── Tests ───────────────────────────────────────────────────────────────────
 
 #[cfg(test)]

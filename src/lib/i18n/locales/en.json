@@ -136,6 +136,7 @@
     },
     "exportCsv": "Export CSV",
     "appInfo": "App info",
-    "dbPath": "Database file"
+    "dbPath": "Database file",
+    "version": "Version"
   }
 }

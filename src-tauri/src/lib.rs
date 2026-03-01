@@ -38,6 +38,7 @@ pub fn run() {
             get_dashboard_summary,
             reset_database,
             get_db_path,
+            get_app_version,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

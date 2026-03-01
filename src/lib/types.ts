@@ -76,6 +76,14 @@ export interface UpdateProductPayload {
 	available: boolean;
 }
 
+// ── App Version ──────────────────────────────────────────────────────────────
+
+export interface AppVersion {
+	version: string;
+	os: string;
+	arch: string;
+}
+
 // ── Dashboard ────────────────────────────────────────────────────────────────
 
 export interface ProductSalesSummary {
