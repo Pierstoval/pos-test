@@ -12,5 +12,3 @@ git tag -m v$tag v$tag
 git push origin main --tags
 
 gh release create v$tag --prerelease --title v$tag --notes ""
-
-cargo --manifest-path=./src-tauri/ release $tag
