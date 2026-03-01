@@ -49,6 +49,9 @@ jobs:
         with:
           targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
 
+      - name: Write release-name
+        run: echo "${{ github.ref_name }}" > release-name
+
       - name: Install frontend dependencies
         run: pnpm install
 
