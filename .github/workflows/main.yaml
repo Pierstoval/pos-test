@@ -22,7 +22,7 @@ jobs:
         steps:
             - uses: actions/checkout@v4
             - name: 🗄️ Setup Rust cache
-              uses: actions/cache@v2
+              uses: actions/cache@v4
               with:
                   key: ${{ matrix.os }}-${{ hashFiles('src-tauri/Cargo.lock') }}
                   path: |
