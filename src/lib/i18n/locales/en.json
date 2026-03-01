@@ -106,7 +106,8 @@
     "paymentMethod": {
       "cash": "Cash",
       "card": "Card"
-    }
+    },
+    "exportCsv": "Export CSV"
   },
   "dashboard": {
     "title": "Dashboard",

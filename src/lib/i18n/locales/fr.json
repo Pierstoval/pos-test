@@ -106,7 +106,8 @@
     "paymentMethod": {
       "cash": "Espèces",
       "card": "Carte"
-    }
+    },
+    "exportCsv": "Exporter CSV"
   },
   "dashboard": {
     "title": "Tableau de bord",

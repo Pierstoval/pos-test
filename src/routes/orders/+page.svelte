@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { onMount } from "svelte";
 	import { invoke } from "@tauri-apps/api/core";
+	import { save } from '@tauri-apps/plugin-dialog';
+	import { writeTextFile, writeFile } from '@tauri-apps/plugin-fs';
 	import type { OrderWithItems } from "$lib/types";
 	import { formatPrice } from "$lib/utils/format";
 	import { t } from "$lib/i18n";
@@ -34,13 +36,113 @@
 		}) + " " + d.toLocaleTimeString("fr-FR", {
 			hour: "2-digit",
 			minute: "2-digit",
+			second: "2-digit",
 		});
+	}
+
+	function centsToEuros(cents: number): string {
+		return (cents / 100).toFixed(2);
+	}
+
+	function q(value: string): string {
+		return `"${value.replace(/"/g, '""')}"`;
+	}
+
+	function exportCsv() {
+		// Collect all unique product names from order items, in first-seen order
+		const productNames: string[] = [];
+		const seen = new Set<string>();
+		for (const order of orders) {
+			for (const item of order.items) {
+				if (!seen.has(item.product_name)) {
+					seen.add(item.product_name);
+					productNames.push(item.product_name);
+				}
+			}
+		}
+
+		// Build header
+		const header = [
+			q("ID"),
+			q("Date"),
+			q("Total €"),
+			q("Payment method"),
+		];
+		for (const name of productNames) {
+			header.push(q(`${name} (unit_price)`));
+			header.push(q(`${name} (quantity)`));
+			header.push(q(`${name} (item_total)`));
+		}
+
+		const lines: string[] = [header.join(";")];
+
+		// Build one line per order
+		for (const order of orders) {
+			const itemsByProduct = new Map<string, typeof order.items[number]>();
+			for (const item of order.items) {
+				itemsByProduct.set(item.product_name, item);
+			}
+
+			const row = [
+				q(order.id),
+				q(order.created_at),
+				q(centsToEuros(order.total)),
+				q(order.payment_method),
+			];
+			for (const name of productNames) {
+				const item = itemsByProduct.get(name);
+				if (item) {
+					row.push(q(centsToEuros(item.unit_price)));
+					row.push(q(String(item.quantity)));
+					row.push(q(centsToEuros(item.total)));
+				} else {
+					row.push(q(""));
+					row.push(q(""));
+					row.push(q(""));
+				}
+			}
+			lines.push(row.join(";"));
+		}
+
+		const csv = lines.join("\n");
+		const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+
+		const path = save({
+			defaultPath: 'commandes.csv',
+			filters: [
+				{
+					name: 'CSV',
+					extensions: ['csv']
+				},
+			],
+		}).then((path: string|null) => {
+			if (!path) {
+				throw new Error('no path');
+			}
+			return writeFile(path, blob.stream());
+		});
+
+		// const url = URL.createObjectURL(blob);
+		// const a = document.createElement("a");
+		// a.href = url;
+		// a.download = "orders.csv";
+		// a.click();
+		// URL.revokeObjectURL(url);
+		// console.info('CSV', csv);
+		// console.info('blob', blob);
+		// console.info('URL', url);
+		// console.info('anchor', a);
 	}
 </script>
 
 <div class="orders-page">
 	<div class="header">
 		<h1>{$t("orders.title")}</h1>
+		{#if orders.length > 0}
+			<button class="export-btn" onclick={exportCsv}>
+				{$t("orders.exportCsv")}
+			</button>
+		{/if}
 	</div>
 
 	{#if isLoading}
@@ -104,6 +206,23 @@
 		margin: 0;
 		font-size: 1.5rem;
 		font-weight: 600;
+	}
+
+	.export-btn {
+		padding: 0 14px;
+		height: 34px;
+		border: 1px solid #3b82f6;
+		border-radius: 6px;
+		background: transparent;
+		color: #3b82f6;
+		font-size: 0.85rem;
+		font-weight: 600;
+		cursor: pointer;
+	}
+
+	.export-btn:hover {
+		background: #3b82f6;
+		color: #fff;
 	}
 
 	.order-list {
@@ -202,6 +321,16 @@
 	}
 
 	@media (prefers-color-scheme: dark) {
+		.export-btn {
+			border-color: #60a5fa;
+			color: #60a5fa;
+		}
+
+		.export-btn:hover {
+			background: #60a5fa;
+			color: #111;
+		}
+
 		.order-card {
 			border-color: #333;
 		}
