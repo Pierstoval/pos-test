@@ -1,0 +1,160 @@
+name: Build app.
+
+on:
+    push:
+        branches: [ main ]
+        tags: [ 'v[0-9]+.*' ]
+    pull_request:
+        branches: [ main ]
+
+jobs:
+    build:
+        strategy:
+            fail-fast: false
+            matrix:
+                os:
+                    - ubuntu-latest
+                    - windows-latest
+                node-version:
+                    - 22.x
+
+        runs-on: ${{ matrix.os }}
+        steps:
+            - uses: actions/checkout@v4
+            - name: 🗄️ Setup Rust cache
+              uses: actions/cache@v2
+              with:
+                  key: ${{ matrix.os }}-${{ hashFiles('src-tauri/Cargo.lock') }}
+                  path: |
+                      ~/.cargo/registry/index
+                      ~/.cargo/registry/cache
+                      ~/.cargo/git
+                      ./src-tauri/target
+
+            - name: 🦀 Install Rust
+              uses: actions-rs/toolchain@v1
+              with: { toolchain: stable }
+
+            - name: 🌐 Update MSEdge webdriver (windowsonly)
+              if: matrix.os == 'windows-latest'
+              run: |
+                  choco upgrade microsoft-edge
+
+            - name: 🌐 Install webkit2gtk (ubuntu only)
+              if: matrix.os == 'ubuntu-latest'
+              run: |
+                  sudo apt-get update
+                  sudo apt-get upgrade -y --no-install-recommends -y libgtk-3-dev libgtksourceview-3.0-dev webkit2gtk-4.0 libappindicator3-dev webkit2gtk-driver xvfb
+
+            - uses: pnpm/action-setup@v4
+
+            - name: 🟢 Use Node.js ${{ matrix.node-version }}
+              uses: actions/setup-node@v4
+              with:
+                node-version: ${{ matrix.node-version }}
+                cache: 'pnpm'
+
+            - name: 🔌 Install Node.js dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: 🔌 Download Rust dependencies
+              working-directory: src-tauri
+              run: cargo fetch
+
+            - name: 🏗️ 📄 Build frontend
+              run: pnpm run build
+
+            - name: 🏗️ 💽 Build application
+              run: pnpm run tauri build
+
+            - name: 🧪 Test backend application
+              continue-on-error: true
+              working-directory: src-tauri
+              run: |
+                  cargo test
+
+            - name: 🗃 Store Linux artifacts (release only)
+              uses: actions/upload-artifact@v4
+              if: matrix.os == 'ubuntu-latest' && startsWith(github.ref, 'refs/tags/v')
+              with:
+                name: pos_artifacts_${{ matrix.os }}
+                overwrite: true
+                path: |
+                  src-tauri/target/release/pos
+                  src-tauri/target/release/bundle/deb/*.deb
+
+            - name: 🗃 Store Windows artifacts (release only)
+              uses: actions/upload-artifact@v4
+              if: matrix.os == 'windows-latest' && startsWith(github.ref, 'refs/tags/v')
+              with:
+                name: pos_artifacts_${{ matrix.os }}
+                overwrite: true
+                path: |
+                  src-tauri/target/release/pos.exe
+                  src-tauri/target/release/bundle/msi/*.msi
+
+    release:
+        runs-on: ubuntu-latest
+        needs:
+            - build
+        if: startsWith(github.ref, 'refs/tags/v')
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Create release
+              uses: actions/create-release@v1
+              id: create_release
+              with:
+                draft: false
+                prerelease: false
+                release_name: ${{ steps.version.outputs.version }}
+                tag_name: ${{ github.ref }}
+                #body_path: CHANGELOG.md
+              env:
+                GITHUB_TOKEN: ${{ github.token }}
+
+            - name: 🗃 Download built artifacts
+              uses: actions/download-artifact@v4
+              with:
+                path: src-tauri/target/release
+                merge-multiple: true
+
+            - name: Upload Windows executable
+              uses: svenstaro/upload-release-action@v2
+              with:
+                repo_token: ${{ secrets.GITHUB_TOKEN }}
+                file: src-tauri/target/release/pos.exe
+                asset_name: pos_${{ github.ref_name }}.exe
+                tag: ${{ github.ref_name }}
+                overwrite: true
+                file_glob: true
+
+            - name: Upload Windows installer
+              uses: svenstaro/upload-release-action@v2
+              with:
+                repo_token: ${{ secrets.GITHUB_TOKEN }}
+                file: src-tauri/target/release/bundle/msi/pos_*.msi
+                asset_name: pos_${{ github.ref_name }}_installer.msi
+                tag: ${{ github.ref_name }}
+                overwrite: true
+                file_glob: true
+
+            - name: Upload Linux executable
+              uses: svenstaro/upload-release-action@v2
+              with:
+                repo_token: ${{ secrets.GITHUB_TOKEN }}
+                file: src-tauri/target/release/pos
+                asset_name: pos_${{ github.ref_name }}
+                tag: ${{ github.ref_name }}
+                overwrite: true
+                file_glob: true
+
+            - name: Upload Linux deb package
+              uses: svenstaro/upload-release-action@v2
+              with:
+                repo_token: ${{ secrets.GITHUB_TOKEN }}
+                file: src-tauri/target/release/bundle/deb/pos_*.deb
+                asset_name: pos_${{ github.ref_name }}.deb
+                tag: ${{ github.ref_name }}
+                overwrite: true
+                file_glob: true
