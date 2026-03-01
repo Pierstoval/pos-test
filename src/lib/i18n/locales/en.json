@@ -107,7 +107,11 @@
       "cash": "Cash",
       "card": "Card"
     },
-    "exportCsv": "Export CSV"
+    "exportCsv": "Export CSV",
+    "csvColId": "ID",
+    "csvColDate": "Date",
+    "csvColTotal": "Total €",
+    "csvColPaymentMethod": "Payment method"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -129,6 +133,7 @@
     "paymentMethod": {
       "cash": "Cash",
       "card": "Card"
-    }
+    },
+    "exportCsv": "Export CSV"
   }
 }

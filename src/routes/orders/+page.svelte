@@ -63,15 +63,15 @@
 
 		// Build header
 		const header = [
-			q("ID"),
-			q("Date"),
-			q("Total €"),
-			q("Payment method"),
+			q($t("orders.csvColId")),
+			q($t("orders.csvColDate")),
+			q($t("orders.csvColTotal")),
+			q($t("orders.csvColPaymentMethod")),
 		];
 		for (const name of productNames) {
-			header.push(q(`${name} (unit_price)`));
-			header.push(q(`${name} (quantity)`));
-			header.push(q(`${name} (item_total)`));
+			header.push(q(`${name} (${$t("orders.colUnitPrice")})`));
+			header.push(q(`${name} (${$t("orders.colQty")})`));
+			header.push(q(`${name} (${$t("orders.colSubtotal")})`));
 		}
 
 		const lines: string[] = [header.join(";")];

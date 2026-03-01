@@ -107,7 +107,11 @@
       "cash": "Espèces",
       "card": "Carte"
     },
-    "exportCsv": "Exporter CSV"
+    "exportCsv": "Exporter CSV",
+    "csvColId": "ID",
+    "csvColDate": "Date",
+    "csvColTotal": "Total €",
+    "csvColPaymentMethod": "Mode de paiement"
   },
   "dashboard": {
     "title": "Tableau de bord",
@@ -129,6 +133,7 @@
     "paymentMethod": {
       "cash": "Espèces",
       "card": "Carte"
-    }
+    },
+    "exportCsv": "Exporter CSV"
   }
 }

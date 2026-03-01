@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { onMount } from "svelte";
 	import { invoke } from "@tauri-apps/api/core";
+	import { save } from "@tauri-apps/plugin-dialog";
+	import { writeFile } from "@tauri-apps/plugin-fs";
 	import type { DashboardSummary } from "$lib/types";
 	import { formatPrice } from "$lib/utils/format";
 	import { t } from "$lib/i18n";
@@ -18,11 +20,68 @@
 			isLoading = false;
 		}
 	});
+
+	function centsToEuros(cents: number): string {
+		return (cents / 100).toFixed(2);
+	}
+
+	function q(value: string): string {
+		return `"${value.replace(/"/g, '""')}"`;
+	}
+
+	function exportCsv() {
+		if (!summary) return;
+
+		const lines: string[] = [];
+
+		// Sales by product table
+		lines.push([q($t("dashboard.colProduct")), q($t("dashboard.colUnitPrice")), q($t("dashboard.colQuantity")), q($t("dashboard.colTotal"))].join(";"));
+		for (const row of summary.per_product) {
+			const unitPrice = centsToEuros(Math.round(row.total_revenue / row.total_quantity));
+			lines.push([
+				q(row.product_name),
+				q(unitPrice),
+				q(String(row.total_quantity)),
+				q(centsToEuros(row.total_revenue)),
+			].join(";"));
+		}
+		lines.push([q($t("dashboard.productTableTotal")), q(""), q(""), q(centsToEuros(summary.total_revenue))].join(";"));
+
+		// Blank separator line
+		lines.push("");
+
+		// Payment method breakdown table
+		lines.push([q($t("dashboard.colPaymentMethod")), q($t("dashboard.colRevenue")), q($t("dashboard.colTransactions"))].join(";"));
+		for (const row of summary.per_payment_method) {
+			lines.push([
+				q(row.payment_method),
+				q(centsToEuros(row.total_revenue)),
+				q(String(row.transaction_count)),
+			].join(";"));
+		}
+		lines.push([q($t("dashboard.colTotal")), q(centsToEuros(summary.total_revenue)), q(String(summary.total_transactions))].join(";"));
+
+		const csv = lines.join("\n");
+		const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+
+		save({
+			defaultPath: "tableau-de-bord.csv",
+			filters: [{ name: "CSV", extensions: ["csv"] }],
+		}).then((path: string | null) => {
+			if (!path) return;
+			return writeFile(path, blob.stream());
+		});
+	}
 </script>
 
 <div class="dashboard-page">
 	<div class="header">
 		<h1>{$t("dashboard.title")}</h1>
+		{#if summary && summary.total_transactions > 0}
+			<button class="export-btn" onclick={exportCsv}>
+				{$t("dashboard.exportCsv")}
+			</button>
+		{/if}
 	</div>
 
 	{#if isLoading}
@@ -109,6 +168,9 @@
 	}
 
 	.header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
 		padding: 24px 0 16px;
 	}
 
@@ -116,6 +178,23 @@
 		margin: 0;
 		font-size: 1.5rem;
 		font-weight: 600;
+	}
+
+	.export-btn {
+		padding: 0 14px;
+		height: 34px;
+		border: 1px solid #3b82f6;
+		border-radius: 6px;
+		background: transparent;
+		color: #3b82f6;
+		font-size: 0.85rem;
+		font-weight: 600;
+		cursor: pointer;
+	}
+
+	.export-btn:hover {
+		background: #3b82f6;
+		color: #fff;
 	}
 
 	.kpi-row {
@@ -210,6 +289,16 @@
 	}
 
 	@media (prefers-color-scheme: dark) {
+		.export-btn {
+			border-color: #60a5fa;
+			color: #60a5fa;
+		}
+
+		.export-btn:hover {
+			background: #60a5fa;
+			color: #111;
+		}
+
 		.kpi-card {
 			background: #262626;
 			border-color: #333;
