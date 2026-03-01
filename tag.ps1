@@ -1,14 +1,16 @@
 
 $Script:tag=$args[0]
 
-echo "ok == $tag =="
+sed -i .\src-tauri\Cargo.toml -E "s/version = `"[0-9\.]+`"/version = `"$tag`"/g"
 
 git add .
 
 git cm -m-
 
-git tag -m $tag $tag
+git tag -m v$tag v$tag
 
 git push origin main --tags
 
-gh release create $tag --prerelease --title $tag --notes ""
+gh release create v$tag --prerelease --title v$tag --notes ""
+
+cargo --manifest-path=./src-tauri/ release $tag
