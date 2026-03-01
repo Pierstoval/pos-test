@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from "svelte";
-	import { invoke } from "@tauri-apps/api/core";
+	import { api_call } from "$lib/api";
 	import { save } from "@tauri-apps/plugin-dialog";
 	import { writeFile } from "@tauri-apps/plugin-fs";
 	import type { DashboardSummary } from "$lib/types";
@@ -8,12 +8,16 @@
 	import { t } from "$lib/i18n";
 
 	let summary = $state<DashboardSummary | null>(null);
+	let dbPath = $state<string | null>(null);
 	let isLoading = $state(true);
 	let error = $state<string | null>(null);
 
 	onMount(async () => {
 		try {
-			summary = await invoke<DashboardSummary>("get_dashboard_summary");
+			[summary, dbPath] = await Promise.all([
+				api_call<DashboardSummary>("get_dashboard_summary"),
+				api_call<string>("get_db_path"),
+			]);
 		} catch (e) {
 			error = $t("dashboard.loadError", { error: String(e) });
 		} finally {
@@ -158,6 +162,13 @@
 			</div>
 		</section>
 	{/if}
+
+	{#if dbPath}
+		<section class="app-info">
+			<h2>{$t("dashboard.appInfo")}</h2>
+			<p><span class="info-label">{$t("dashboard.dbPath")} :</span> <code>{dbPath}</code></p>
+		</section>
+	{/if}
 </div>
 
 <style>
@@ -288,6 +299,35 @@
 		color: #dc2626;
 	}
 
+	.app-info {
+		margin-top: 32px;
+		padding-top: 16px;
+		border-top: 1px solid #e0e0e0;
+	}
+
+	.app-info h2 {
+		font-size: 0.9rem;
+		color: #888;
+	}
+
+	.app-info p {
+		margin: 0;
+		font-size: 0.82rem;
+		color: #999;
+	}
+
+	.info-label {
+		font-weight: 600;
+	}
+
+	.app-info code {
+		font-size: 0.8rem;
+		background: #f3f4f6;
+		padding: 2px 6px;
+		border-radius: 4px;
+		word-break: break-all;
+	}
+
 	@media (prefers-color-scheme: dark) {
 		.export-btn {
 			border-color: #60a5fa;
@@ -315,6 +355,14 @@
 
 		tfoot td {
 			border-top-color: #444;
+		}
+
+		.app-info {
+			border-top-color: #444;
+		}
+
+		.app-info code {
+			background: #333;
 		}
 	}
 </style>

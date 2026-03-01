@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from "svelte";
-	import { invoke } from "@tauri-apps/api/core";
+	import { api_call } from "$lib/api";
 	import type { Product, Category, CartItem, OrderWithItems, CreateOrderPayload } from "$lib/types";
 	import ProductGrid from "$lib/components/ProductGrid.svelte";
 	import OrderPanel from "$lib/components/OrderPanel.svelte";
@@ -19,8 +19,8 @@
 	onMount(async () => {
 		try {
 			[products, categories] = await Promise.all([
-				invoke<Product[]>("list_products"),
-				invoke<Category[]>("list_categories"),
+				api_call<Product[]>("list_products"),
+				api_call<Category[]>("list_categories"),
 			]);
 		} catch (e) {
 			error = $t("sales.loadError", { error: String(e) });
@@ -68,7 +68,7 @@
 		};
 
 		try {
-			await invoke<OrderWithItems>("create_order", { payload });
+			await api_call<OrderWithItems>("create_order", { payload });
 			cart = [];
 			isCheckoutOpen = false;
 		} catch (e) {

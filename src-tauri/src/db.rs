@@ -8,6 +8,7 @@ use tauri::Manager;
 /// single connection.
 pub struct DbState {
     pub conn: Mutex<Connection>,
+    pub db_path: String,
 }
 
 #[cfg(test)]
@@ -19,6 +20,7 @@ pub fn init_db_in_memory() -> DbState {
     create_default_data(&conn);
     DbState {
         conn: Mutex::new(conn),
+        db_path: ":memory:".to_string(),
     }
 }
 
@@ -55,6 +57,7 @@ pub fn init_db(app_handle: &AppHandle) -> Result<DbState, String> {
 
     Ok(DbState {
         conn: Mutex::new(conn),
+        db_path: db_path.to_string_lossy().into_owned(),
     })
 }
 

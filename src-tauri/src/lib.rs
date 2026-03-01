@@ -37,6 +37,7 @@ pub fn run() {
             list_orders,
             get_dashboard_summary,
             reset_database,
+            get_db_path,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

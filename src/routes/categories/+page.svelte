@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from "svelte";
-	import { invoke } from "@tauri-apps/api/core";
+	import { api_call } from "$lib/api";
 	import type { Category, CreateCategoryPayload, UpdateCategoryPayload } from "$lib/types";
 	import CategoryFormModal from "$lib/components/CategoryFormModal.svelte";
 	import { t } from "$lib/i18n";
@@ -19,7 +19,7 @@
 		isLoading = true;
 		error = null;
 		try {
-			categories = await invoke<Category[]>("list_categories");
+			categories = await api_call<Category[]>("list_categories");
 		} catch (e) {
 			error = $t("categories.loadError", { error: String(e) });
 		} finally {
@@ -47,7 +47,7 @@
 		if (!confirmed) return;
 
 		try {
-			await invoke("delete_category", { categoryId: category.id });
+			await api_call("delete_category", { categoryId: category.id });
 			await loadCategories();
 		} catch (e) {
 			error = $t("categories.deleteError", { error: String(e) });
@@ -62,14 +62,14 @@
 					label: data.label,
 					color: data.color,
 				};
-				await invoke<Category>("update_category", { payload });
+				await api_call<Category>("update_category", { payload });
 			} else {
 				const payload: CreateCategoryPayload = {
 					id: data.id,
 					label: data.label,
 					color: data.color,
 				};
-				await invoke<Category>("create_category", { payload });
+				await api_call<Category>("create_category", { payload });
 			}
 			closeForm();
 			await loadCategories();

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from "$app/state";
-	import { invoke } from "@tauri-apps/api/core";
+	import { api_call } from "$lib/api";
 	import { t } from "$lib/i18n";
 
 	const links = [
@@ -33,7 +33,7 @@
 		if (!confirm($t("nav.resetConfirm"))) return;
 		isResetting = true;
 		try {
-			await invoke("reset_database");
+			await api_call("reset_database");
 			window.location.reload();
 		} catch (e) {
 			alert($t("nav.resetFailed", { error: String(e) }));

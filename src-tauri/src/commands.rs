@@ -613,6 +613,11 @@ pub fn reset_database(state: State<'_, DbState>) -> Result<(), String> {
     reset_database_inner(&state)
 }
 
+#[tauri::command]
+pub fn get_db_path(state: State<'_, DbState>) -> String {
+    state.db_path.clone()
+}
+
 // ── Tests ───────────────────────────────────────────────────────────────────
 
 #[cfg(test)]

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from "svelte";
-	import { invoke } from "@tauri-apps/api/core";
+	import { api_call } from "$lib/api";
 	import { save } from '@tauri-apps/plugin-dialog';
 	import { writeTextFile, writeFile } from '@tauri-apps/plugin-fs';
 	import type { OrderWithItems } from "$lib/types";
@@ -19,7 +19,7 @@
 		isLoading = true;
 		error = null;
 		try {
-			orders = await invoke<OrderWithItems[]>("list_orders");
+			orders = await api_call<OrderWithItems[]>("list_orders");
 		} catch (e) {
 			error = $t("orders.loadError", { error: String(e) });
 		} finally {

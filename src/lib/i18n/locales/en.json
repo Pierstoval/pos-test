@@ -134,6 +134,8 @@
       "cash": "Cash",
       "card": "Card"
     },
-    "exportCsv": "Export CSV"
+    "exportCsv": "Export CSV",
+    "appInfo": "App info",
+    "dbPath": "Database file"
   }
 }

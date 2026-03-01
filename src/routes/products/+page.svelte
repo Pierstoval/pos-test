@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from "svelte";
-	import { invoke } from "@tauri-apps/api/core";
+	import { api_call } from "$lib/api";
 	import type { Product, Category, CreateProductPayload, UpdateProductPayload } from "$lib/types";
 	import { formatPrice } from "$lib/utils/format";
 	import ProductFormModal from "$lib/components/ProductFormModal.svelte";
@@ -26,8 +26,8 @@
 		error = null;
 		try {
 			[products, categories] = await Promise.all([
-				invoke<Product[]>("list_products"),
-				invoke<Category[]>("list_categories"),
+				api_call<Product[]>("list_products"),
+				api_call<Category[]>("list_categories"),
 			]);
 		} catch (e) {
 			error = $t("products.loadError", { error: String(e) });
@@ -66,14 +66,14 @@
 					category_id: data.category_id,
 					available: data.available,
 				};
-				await invoke<Product>("update_product", { payload });
+				await api_call<Product>("update_product", { payload });
 			} else {
 				const payload: CreateProductPayload = {
 					name: data.name,
 					price: data.price,
 					category_id: data.category_id,
 				};
-				await invoke<Product>("create_product", { payload });
+				await api_call<Product>("create_product", { payload });
 			}
 			closeForm();
 			await loadData();
@@ -85,7 +85,7 @@
 
 	async function toggleAvailability(productId: string) {
 		try {
-			const newAvailable = await invoke<boolean>("toggle_product_availability", { productId });
+			const newAvailable = await api_call<boolean>("toggle_product_availability", { productId });
 			products = products.map((p) =>
 				p.id === productId ? { ...p, available: newAvailable } : p,
 			);
@@ -99,7 +99,7 @@
 		if (!confirmed) return;
 
 		try {
-			await invoke("delete_product", { productId: product.id });
+			await api_call("delete_product", { productId: product.id });
 			await loadData();
 		} catch (e) {
 			error = $t("products.deleteError", { error: String(e) });
