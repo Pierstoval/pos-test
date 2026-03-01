@@ -54,7 +54,7 @@ jobs:
         if: matrix.mobile == 'android'
         with:
           distribution: 'zulu' # See 'Supported distributions' for available options
-          java-version: '25'
+          java-version: '21'
 
       - name: 🟢 Install Node.js
         uses: actions/setup-node@v6
@@ -80,6 +80,7 @@ jobs:
           releaseName: ${{ github.ref_name }}
           releaseBody: 'See the assets below to download the installer for your platform.'
           releaseDraft: false
-          prerelease: false
+          prerelease: true
+          uploadPlainBinary: true
           mobile: ${{ matrix.mobile }}
           args: ${{ matrix.args }}
