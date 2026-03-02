@@ -1,7 +1,7 @@
 
 $Script:tag=$args[0]
 
-sed -i .\src-tauri\Cargo.toml -E "s/version = `"[0-9\.]+`"/version = `"$tag`"/g"
+sed -i -E "s~^version *= *`"[^`"]*`"~version = `"$tag`"~gi" .\src-tauri\Cargo.toml
 
 git add .
 
