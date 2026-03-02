@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { confirm as tauriConfirm } from '@tauri-apps/plugin-dialog';
+	import { confirm } from '$lib/confirm.svelte';
 	import { api_call } from '$lib/api';
 	import type { Product, Category, CreateProductPayload, UpdateProductPayload } from '$lib/types';
 	import { formatPrice } from '$lib/utils/format';
@@ -92,7 +92,7 @@
 	}
 
 	async function deleteProduct(product: Product) {
-		const confirmed = await tauriConfirm($t('products.deleteConfirm', { name: product.name }));
+		const confirmed = await confirm($t('products.deleteConfirm', { name: product.name }));
 		if (!confirmed) {
 			return;
 		}

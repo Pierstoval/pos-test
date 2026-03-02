@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { api_call } from '$lib/api';
-	import { save, confirm as tauriConfirm } from '@tauri-apps/plugin-dialog';
+	import { save } from '@tauri-apps/plugin-dialog';
+	import { confirm } from '$lib/confirm.svelte';
 	import { writeFile } from '@tauri-apps/plugin-fs';
 	import type { DashboardSummary, AppVersion } from '$lib/types';
 	import { formatPrice } from '$lib/utils/format';
@@ -37,7 +38,7 @@
 	}
 
 	async function resetDatabase() {
-		const confirmed = await tauriConfirm($t('dashboard.resetConfirm'));
+		const confirmed = await confirm($t('dashboard.resetConfirm'));
 		if (!confirmed) {
 			return;
 		}

@@ -1,4 +1,9 @@
 {
+	"confirm": {
+		"title": "Confirmation",
+		"ok": "Confirm",
+		"cancel": "Cancel"
+	},
 	"nav": {
 		"sales": "Sales",
 		"products": "Products",

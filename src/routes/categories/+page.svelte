@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { confirm as tauriConfirm } from '@tauri-apps/plugin-dialog';
+	import { confirm } from '$lib/confirm.svelte';
 	import { api_call } from '$lib/api';
 	import type { Category, CreateCategoryPayload, UpdateCategoryPayload } from '$lib/types';
 	import CategoryFormModal from '$lib/components/CategoryFormModal.svelte';
@@ -44,7 +44,7 @@
 	}
 
 	async function deleteCategory(category: Category) {
-		const confirmed = await tauriConfirm($t('categories.deleteConfirm', { label: category.label }));
+		const confirmed = await confirm($t('categories.deleteConfirm', { label: category.label }));
 		if (!confirmed) {
 			return;
 		}

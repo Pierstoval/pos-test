@@ -1,5 +1,6 @@
 <script lang="ts">
 	import NavMenu from '$lib/components/NavMenu.svelte';
+	import ConfirmModal from '$lib/components/ConfirmModal.svelte';
 	import type { Snippet } from 'svelte';
 
 	let { children }: { children: Snippet } = $props();
@@ -9,6 +10,7 @@
 <div class="page-content">
 	{@render children()}
 </div>
+<ConfirmModal />
 
 <style>
 	:global(body) {
