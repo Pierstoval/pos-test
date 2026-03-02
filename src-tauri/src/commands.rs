@@ -9,10 +9,7 @@ use crate::models::*;
 // ── Inner functions (testable without Tauri runtime) ────────────────────────
 
 pub(crate) fn list_categories_inner(db: &DbState) -> Result<Vec<Category>, String> {
-    let conn = db
-        .conn
-        .lock()
-        .map_err(|e| format!("DB lock error: {e}"))?;
+    let conn = db.conn.lock().map_err(|e| format!("DB lock error: {e}"))?;
 
     let mut stmt = conn
         .prepare("SELECT id, label, color FROM categories ORDER BY label")
@@ -37,10 +34,7 @@ pub(crate) fn create_category_inner(
     db: &DbState,
     payload: CreateCategoryPayload,
 ) -> Result<Category, String> {
-    let conn = db
-        .conn
-        .lock()
-        .map_err(|e| format!("DB lock error: {e}"))?;
+    let conn = db.conn.lock().map_err(|e| format!("DB lock error: {e}"))?;
 
     conn.execute(
         "INSERT INTO categories (id, label, color) VALUES (?1, ?2, ?3)",
@@ -59,10 +53,7 @@ pub(crate) fn update_category_inner(
     db: &DbState,
     payload: UpdateCategoryPayload,
 ) -> Result<Category, String> {
-    let conn = db
-        .conn
-        .lock()
-        .map_err(|e| format!("DB lock error: {e}"))?;
+    let conn = db.conn.lock().map_err(|e| format!("DB lock error: {e}"))?;
 
     let rows_affected = conn
         .execute(
@@ -83,10 +74,7 @@ pub(crate) fn update_category_inner(
 }
 
 pub(crate) fn list_products_inner(db: &DbState) -> Result<Vec<Product>, String> {
-    let conn = db
-        .conn
-        .lock()
-        .map_err(|e| format!("DB lock error: {e}"))?;
+    let conn = db.conn.lock().map_err(|e| format!("DB lock error: {e}"))?;
 
     let mut stmt = conn
         .prepare("SELECT id, name, price, category_id, available FROM products ORDER BY name")
@@ -113,10 +101,7 @@ pub(crate) fn create_product_inner(
     db: &DbState,
     payload: CreateProductPayload,
 ) -> Result<Product, String> {
-    let conn = db
-        .conn
-        .lock()
-        .map_err(|e| format!("DB lock error: {e}"))?;
+    let conn = db.conn.lock().map_err(|e| format!("DB lock error: {e}"))?;
 
     let id = Uuid::new_v4().to_string();
 
@@ -139,10 +124,7 @@ pub(crate) fn update_product_inner(
     db: &DbState,
     payload: UpdateProductPayload,
 ) -> Result<Product, String> {
-    let conn = db
-        .conn
-        .lock()
-        .map_err(|e| format!("DB lock error: {e}"))?;
+    let conn = db.conn.lock().map_err(|e| format!("DB lock error: {e}"))?;
 
     let available_int: i64 = if payload.available { 1 } else { 0 };
 
@@ -176,10 +158,7 @@ pub(crate) fn toggle_product_availability_inner(
     db: &DbState,
     product_id: String,
 ) -> Result<bool, String> {
-    let conn = db
-        .conn
-        .lock()
-        .map_err(|e| format!("DB lock error: {e}"))?;
+    let conn = db.conn.lock().map_err(|e| format!("DB lock error: {e}"))?;
 
     // Read current availability.
     let current: i64 = conn
@@ -205,10 +184,7 @@ pub(crate) fn create_order_inner(
     db: &DbState,
     payload: CreateOrderPayload,
 ) -> Result<OrderWithItems, String> {
-    let mut conn = db
-        .conn
-        .lock()
-        .map_err(|e| format!("DB lock error: {e}"))?;
+    let mut conn = db.conn.lock().map_err(|e| format!("DB lock error: {e}"))?;
 
     if payload.items.is_empty() {
         return Err("Cannot create an order with no items".to_string());
@@ -248,7 +224,12 @@ pub(crate) fn create_order_inner(
 
     tx.execute(
         "INSERT INTO orders (id, created_at, total, payment_method) VALUES (?1, ?2, ?3, ?4)",
-        params![order_id, created_at, order_total, payload.payment_method.as_db_str()],
+        params![
+            order_id,
+            created_at,
+            order_total,
+            payload.payment_method.as_db_str()
+        ],
     )
     .map_err(|e| format!("Insert order error: {e}"))?;
 
@@ -284,10 +265,7 @@ pub(crate) fn create_order_inner(
 }
 
 pub(crate) fn list_orders_inner(db: &DbState) -> Result<Vec<OrderWithItems>, String> {
-    let conn = db
-        .conn
-        .lock()
-        .map_err(|e| format!("DB lock error: {e}"))?;
+    let conn = db.conn.lock().map_err(|e| format!("DB lock error: {e}"))?;
 
     // Fetch all orders.
     let mut order_stmt = conn
@@ -364,10 +342,7 @@ pub(crate) fn list_orders_inner(db: &DbState) -> Result<Vec<OrderWithItems>, Str
 }
 
 pub(crate) fn get_dashboard_summary_inner(db: &DbState) -> Result<DashboardSummary, String> {
-    let conn = db
-        .conn
-        .lock()
-        .map_err(|e| format!("DB lock error: {e}"))?;
+    let conn = db.conn.lock().map_err(|e| format!("DB lock error: {e}"))?;
 
     // Grand totals.
     let (total_revenue, total_transactions): (i64, i64) = conn
@@ -444,10 +419,7 @@ pub(crate) fn get_dashboard_summary_inner(db: &DbState) -> Result<DashboardSumma
 }
 
 pub(crate) fn delete_product_inner(db: &DbState, product_id: String) -> Result<(), String> {
-    let conn = db
-        .conn
-        .lock()
-        .map_err(|e| format!("DB lock error: {e}"))?;
+    let conn = db.conn.lock().map_err(|e| format!("DB lock error: {e}"))?;
 
     let rows_affected = conn
         .execute("DELETE FROM products WHERE id = ?1", params![product_id])
@@ -461,10 +433,7 @@ pub(crate) fn delete_product_inner(db: &DbState, product_id: String) -> Result<(
 }
 
 pub(crate) fn delete_category_inner(db: &DbState, category_id: String) -> Result<(), String> {
-    let conn = db
-        .conn
-        .lock()
-        .map_err(|e| format!("DB lock error: {e}"))?;
+    let conn = db.conn.lock().map_err(|e| format!("DB lock error: {e}"))?;
 
     // Check whether any products reference this category.
     let product_count: i64 = conn
@@ -494,10 +463,7 @@ pub(crate) fn delete_category_inner(db: &DbState, category_id: String) -> Result
 }
 
 pub(crate) fn reset_database_inner(db: &DbState) -> Result<(), String> {
-    let mut conn = db
-        .conn
-        .lock()
-        .map_err(|e| format!("DB lock error: {e}"))?;
+    let mut conn = db.conn.lock().map_err(|e| format!("DB lock error: {e}"))?;
 
     let db_path = &db.db_path;
     let is_file_db = db_path != ":memory:";
@@ -514,8 +480,7 @@ pub(crate) fn reset_database_inner(db: &DbState) -> Result<(), String> {
         let _ = std::fs::remove_file(format!("{db_path}-wal"));
         let _ = std::fs::remove_file(format!("{db_path}-shm"));
 
-        *conn = Connection::open(db_path)
-            .map_err(|e| format!("Failed to reopen database: {e}"))?;
+        *conn = Connection::open(db_path).map_err(|e| format!("Failed to reopen database: {e}"))?;
 
         conn.execute_batch("PRAGMA journal_mode=WAL;")
             .map_err(|e| format!("Failed to set WAL mode: {e}"))?;
@@ -673,7 +638,10 @@ mod tests {
 
         let products = list_products_inner(&db).unwrap();
         assert_eq!(products.len(), 21);
-        let cola = products.iter().find(|p| p.id == created.id).expect("Cola should be in the list");
+        let cola = products
+            .iter()
+            .find(|p| p.id == created.id)
+            .expect("Cola should be in the list");
         assert_eq!(cola.name, "Cola");
     }
 
@@ -701,7 +669,10 @@ mod tests {
 
         // Verify via list
         let products = list_products_inner(&db).unwrap();
-        let crisps = products.iter().find(|p| p.id == updated.id).expect("Crisps should be in the list");
+        let crisps = products
+            .iter()
+            .find(|p| p.id == updated.id)
+            .expect("Crisps should be in the list");
         assert_eq!(crisps.name, "Crisps");
         assert!(!crisps.available);
     }
@@ -848,10 +819,16 @@ mod tests {
 
         // Per-payment-method: ordered by payment_method ASC => card, cash
         assert_eq!(summary.per_payment_method.len(), 2);
-        assert_eq!(summary.per_payment_method[0].payment_method, PaymentMethod::Card);
+        assert_eq!(
+            summary.per_payment_method[0].payment_method,
+            PaymentMethod::Card
+        );
         assert_eq!(summary.per_payment_method[0].total_revenue, 500);
         assert_eq!(summary.per_payment_method[0].transaction_count, 1);
-        assert_eq!(summary.per_payment_method[1].payment_method, PaymentMethod::Cash);
+        assert_eq!(
+            summary.per_payment_method[1].payment_method,
+            PaymentMethod::Cash
+        );
         assert_eq!(summary.per_payment_method[1].total_revenue, 400);
         assert_eq!(summary.per_payment_method[1].transaction_count, 1);
     }
@@ -866,7 +843,10 @@ mod tests {
         let after = list_products_inner(&db).unwrap().len();
 
         assert_eq!(after, before - 1);
-        assert!(list_products_inner(&db).unwrap().iter().all(|prod| prod.id != p.id));
+        assert!(list_products_inner(&db)
+            .unwrap()
+            .iter()
+            .all(|prod| prod.id != p.id));
     }
 
     #[test]

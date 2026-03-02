@@ -12,8 +12,8 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
         .setup(|app| {
-            let db_state = db::init_db(app.handle())
-                .map_err(|e| Box::<dyn std::error::Error>::from(e))?;
+            let db_state =
+                db::init_db(app.handle()).map_err(|e| Box::<dyn std::error::Error>::from(e))?;
             app.manage(db_state);
 
             #[cfg(debug_assertions)]

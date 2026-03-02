@@ -20,8 +20,7 @@ fn main() {
             .trim()
             .to_string();
         let dev_version = format!("{tag}-dev");
-        std::fs::write(release_name_path, &dev_version)
-            .expect("Failed to write release-name file");
+        std::fs::write(release_name_path, &dev_version).expect("Failed to write release-name file");
         dev_version
     };
 
