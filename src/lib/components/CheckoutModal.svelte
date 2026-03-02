@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { tick } from 'svelte';
 	import type { CartItem } from '$lib/types';
 	import { formatPrice } from '$lib/utils/format';
 	import { t } from '$lib/i18n';
@@ -15,8 +16,12 @@
 	let paymentMethod = $state<'cash' | 'card' | null>(null);
 	let cashReceived = $state('');
 	let isSubmitting = $state(false);
+	let cashInput = $state<HTMLInputElement | null>(null);
+
+	let formattedTotal = $derived((total / 100).toFixed(2).replace('.', ','));
 
 	let cashReceivedCents = $derived.by(() => {
+		if (cashReceived.trim() === '') return total;
 		const val = parseFloat(cashReceived.replace(',', '.'));
 		return isNaN(val) ? 0 : Math.round(val * 100);
 	});
@@ -33,12 +38,14 @@
 
 	function selectPayment(method: 'cash' | 'card') {
 		paymentMethod = method;
-		if (method === 'cash') {
-			cashReceived = (total / 100).toFixed(2).replace('.', ',');
-		} else {
-			cashReceived = '';
-		}
+		cashReceived = '';
 	}
+
+	$effect(() => {
+		if (paymentMethod === 'cash') {
+			tick().then(() => cashInput?.focus());
+		}
+	});
 
 	async function handleConfirm() {
 		if (!paymentMethod || !canConfirm) {
@@ -89,7 +96,7 @@
 			<div class="cash-section">
 				<label>
 					{$t('checkout.amountReceived')}
-					<input type="text" inputmode="decimal" placeholder="0,00" bind:value={cashReceived} />
+					<input bind:this={cashInput} type="text" inputmode="decimal" placeholder={formattedTotal} bind:value={cashReceived} />
 				</label>
 				{#if cashReceivedCents >= total}
 					<div class="change">
