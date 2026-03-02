@@ -77,7 +77,7 @@ pub(crate) fn list_products_inner(db: &DbState) -> Result<Vec<Product>, String> 
     let conn = db.conn.lock().map_err(|e| format!("DB lock error: {e}"))?;
 
     let mut stmt = conn
-        .prepare("SELECT id, name, price, category_id, available FROM products ORDER BY name")
+        .prepare("SELECT id, name, price, category_id, available FROM products ORDER BY category_id, name")
         .map_err(|e| format!("Query error: {e}"))?;
 
     let products = stmt
