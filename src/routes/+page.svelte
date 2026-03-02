@@ -110,7 +110,7 @@
 	.sales-screen {
 		display: grid;
 		grid-template-columns: 1fr 360px;
-		height: calc(100vh - 48px);
+		height: 100%;
 	}
 
 	.product-area {
@@ -118,7 +118,7 @@
 	}
 
 	.sidebar {
-		height: calc(100vh - 48px);
+		height: 100%;
 		overflow: hidden;
 	}
 
@@ -127,7 +127,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		height: calc(100vh - 48px);
+		height: 100%;
 		font-size: 1.2rem;
 		color: #888;
 	}
@@ -140,7 +140,7 @@
 		.sales-screen {
 			grid-template-columns: 1fr;
 			grid-template-rows: 1fr auto;
-			height: calc(100vh - 48px);
+			height: 100%;
 		}
 
 		.product-area {

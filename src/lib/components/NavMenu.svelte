@@ -44,10 +44,8 @@
 	</div>
 </nav>
 
-{#if menuOpen}
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div class="backdrop" onclick={closeMenu}></div>
-{/if}
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<div class="backdrop" class:show={menuOpen} onclick={closeMenu}></div>
 
 <style>
 	.nav-menu {
@@ -125,6 +123,9 @@
 	.backdrop {
 		display: none;
 	}
+	.backdrop.show {
+		display: block;
+	}
 
 	/* Desktop: menu-links is inline flex */
 	.menu-links {
@@ -169,7 +170,6 @@
 		}
 
 		.backdrop {
-			display: block;
 			position: fixed;
 			inset: 0;
 			z-index: 950;

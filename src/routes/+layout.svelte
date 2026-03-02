@@ -24,9 +24,6 @@
 		color: #0f0f0f;
 		background: #f6f6f6;
 	}
-	:global(body.topMargin) {
-		padding-top: 15px;
-	}
 
 	@media (prefers-color-scheme: dark) {
 		:global(body) {
@@ -36,9 +33,10 @@
 	}
 
 	.page-content {
+		height: 100vh;
 		padding-top: 48px;
 	}
 	.page-content.topMargin {
-		margin-top: 20px;
+		padding-top: 68px;
 	}
 </style>
