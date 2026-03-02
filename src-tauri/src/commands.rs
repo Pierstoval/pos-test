@@ -449,22 +449,6 @@ pub(crate) fn delete_product_inner(db: &DbState, product_id: String) -> Result<(
         .lock()
         .map_err(|e| format!("DB lock error: {e}"))?;
 
-    // Check whether any order items reference this product.
-    let order_item_count: i64 = conn
-        .query_row(
-            "SELECT COUNT(*) FROM order_items WHERE product_id = ?1",
-            params![product_id],
-            |row| row.get(0),
-        )
-        .map_err(|e| format!("Query error: {e}"))?;
-
-    if order_item_count > 0 {
-        return Err(format!(
-            "Cannot delete product '{}': it is referenced by {} order item(s)",
-            product_id, order_item_count
-        ));
-    }
-
     let rows_affected = conn
         .execute("DELETE FROM products WHERE id = ?1", params![product_id])
         .map_err(|e| format!("Delete error: {e}"))?;
@@ -894,7 +878,7 @@ mod tests {
     }
 
     #[test]
-    fn delete_product_with_order_items_fails() {
+    fn delete_product_with_order_items_succeeds() {
         let db = init_db_in_memory();
         let p = make_product(&db, "Ordered Item", 200, "snack");
 
@@ -914,8 +898,7 @@ mod tests {
         .unwrap();
 
         let result = delete_product_inner(&db, p.id);
-        assert!(result.is_err());
-        assert!(result.unwrap_err().contains("referenced by"));
+        assert!(result.is_ok());
     }
 
     #[test]
