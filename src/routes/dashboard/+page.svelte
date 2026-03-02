@@ -1,9 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { api_call } from '$lib/api';
-	import { save } from '@tauri-apps/plugin-dialog';
 	import { confirm } from '$lib/confirm.svelte';
-	import { writeFile } from '@tauri-apps/plugin-fs';
+	import { downloadCsv } from '$lib/export-csv';
 	import type { DashboardSummary, AppVersion } from '$lib/types';
 	import { formatPrice } from '$lib/utils/format';
 	import { t } from '$lib/i18n';
@@ -52,7 +51,7 @@
 		}
 	}
 
-	function exportCsv() {
+	async function exportCsv() {
 		if (!summary) {
 			return;
 		}
@@ -117,17 +116,8 @@
 		);
 
 		const csv = lines.join('\n');
-		const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
 
-		save({
-			defaultPath: 'tableau-de-bord.csv',
-			filters: [{ name: 'CSV', extensions: ['csv'] }]
-		}).then((path: string | null) => {
-			if (!path) {
-				return;
-			}
-			return writeFile(path, blob.stream());
-		});
+		await downloadCsv('tableau-de-bord.csv', csv);
 	}
 </script>
 

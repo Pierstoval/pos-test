@@ -80,7 +80,7 @@ pub fn create_default_data(conn: &Connection) {
         ("boisson-sans-alcool", "Boisson sans alcool", "#3b82f6"),
         ("alcool", "Alcool", "#8b5cf6"),
         ("sucreries", "Sucreries", "#e84393"),
-        ("autre", "Autre", "#6b7280"),
+        ("consignes", "Consignes", "#6b7280"),
     ];
     for (id, label, color) in &defaults {
         conn.execute(
@@ -99,8 +99,8 @@ pub fn create_default_data(conn: &Connection) {
         ("biere-25cl", "Bière (25cl)", 300, "alcool"),
         ("cidre-doux", "Cidre (doux)", 300, "alcool"),
         ("cidre-brut", "Cidre (brut)", 300, "alcool"),
-        ("consigne-verre", "Consigne verre", 100, "autre"),
-        ("consigne-pichet", "Consigne pichet", 500, "autre"),
+        ("consigne-verre", "Consigne verre", 100, "consignes"),
+        ("consigne-pichet", "Consigne pichet", 500, "consignes"),
         ("bonbon", "Bonbon/M&Ms/Twix", 100, "sucreries"),
         ("part-de-gateau", "Part de gâteau", 100, "sucreries"),
         ("crepe-nature", "Crêpe nature", 200, "sucreries"),

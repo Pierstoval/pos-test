@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { api_call } from '$lib/api';
-	import { save } from '@tauri-apps/plugin-dialog';
-	import { writeTextFile, writeFile } from '@tauri-apps/plugin-fs';
+	import { downloadCsv } from '$lib/export-csv';
 	import type { OrderWithItems } from '$lib/types';
 	import { formatPrice } from '$lib/utils/format';
 	import { t } from '$lib/i18n';
@@ -52,7 +51,7 @@
 		return `"${value.replace(/"/g, '""')}"`;
 	}
 
-	function exportCsv() {
+	async function exportCsv() {
 		// Collect all unique product names from order items, in first-seen order
 		const productNames: string[] = [];
 		const seen = new Set<string>();
@@ -109,33 +108,8 @@
 		}
 
 		const csv = lines.join('\n');
-		const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
 
-		const path = save({
-			defaultPath: 'commandes.csv',
-			filters: [
-				{
-					name: 'CSV',
-					extensions: ['csv']
-				}
-			]
-		}).then((path: string | null) => {
-			if (!path) {
-				throw new Error('no path');
-			}
-			return writeFile(path, blob.stream());
-		});
-
-		// const url = URL.createObjectURL(blob);
-		// const a = document.createElement("a");
-		// a.href = url;
-		// a.download = "orders.csv";
-		// a.click();
-		// URL.revokeObjectURL(url);
-		// console.info('CSV', csv);
-		// console.info('blob', blob);
-		// console.info('URL', url);
-		// console.info('anchor', a);
+		await downloadCsv('commandes.csv', csv);
 	}
 </script>
 
