@@ -94,9 +94,7 @@ pub fn create_tables(conn: &Connection) -> Result<(), String> {
             product_name  TEXT NOT NULL,
             unit_price    INTEGER NOT NULL,
             quantity      INTEGER NOT NULL,
-            total         INTEGER NOT NULL,
-            FOREIGN KEY (order_id)   REFERENCES orders   (id),
-            FOREIGN KEY (product_id) REFERENCES products (id)
+            total         INTEGER NOT NULL
         );
 
         CREATE INDEX IF NOT EXISTS idx_order_items_order_id
