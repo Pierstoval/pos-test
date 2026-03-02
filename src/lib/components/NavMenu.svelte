@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { api_call } from '$lib/api';
 	import { t } from '$lib/i18n';
+	import {APP_TARGET} from "$lib/api";
 
 	const links = [
 		{ href: '/', labelKey: 'nav.sales' },
@@ -12,6 +12,8 @@
 	];
 
 	let menuOpen = $state(false);
+
+	let topMargin = APP_TARGET === 'tauri';
 
 	function isActive(href: string): boolean {
 		return href === '/' ? page.url.pathname === '/' : page.url.pathname.startsWith(href);
@@ -26,7 +28,7 @@
 	}
 </script>
 
-<nav class="nav-menu">
+<nav class="nav-menu" class:topMargin={topMargin}>
 	<button class="hamburger" onclick={toggleMenu} aria-label="Menu">
 		<span class="hamburger-line"></span>
 		<span class="hamburger-line"></span>
@@ -61,6 +63,9 @@
 		padding: 0 12px;
 		background: #ffffff;
 		border-bottom: 1px solid #e0e0e0;
+	}
+	.nav-menu.topMargin {
+		margin-top: 20px;
 	}
 
 	a {
