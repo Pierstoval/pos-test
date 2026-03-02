@@ -1,51 +1,63 @@
 <script lang="ts">
-	import type { Product, Category } from "$lib/types";
-	import { t } from "$lib/i18n";
+	import type { Product, Category } from '$lib/types';
+	import { t } from '$lib/i18n';
 
 	interface Props {
 		product: Product | null;
 		categories: Category[];
-		onSave: (data: { name: string; price: number; category_id: string; available: boolean }) => void;
+		onSave: (data: {
+			name: string;
+			price: number;
+			category_id: string;
+			available: boolean;
+		}) => void;
 		onCancel: () => void;
 	}
 
 	let { product, categories, onSave, onCancel }: Props = $props();
 
-	let name = $state(product?.name ?? "");
-	let priceInput = $state(product ? (product.price / 100).toFixed(2).replace(".", ",") : "");
-	let category_id = $state(product?.category_id ?? categories[0]?.id ?? "");
+	let name = $state(product?.name ?? '');
+	let priceInput = $state(product ? (product.price / 100).toFixed(2).replace('.', ',') : '');
+	let category_id = $state(product?.category_id ?? categories[0]?.id ?? '');
 	let available = $state(product?.available ?? true);
 	let isSubmitting = $state(false);
 
 	let priceCents = $derived.by(() => {
-		const val = parseFloat(priceInput.replace(",", "."));
+		const val = parseFloat(priceInput.replace(',', '.'));
 		return isNaN(val) ? 0 : Math.round(val * 100);
 	});
 
 	let canSave = $derived(
-		!isSubmitting && name.trim().length > 0 && priceCents > 0 && category_id.length > 0,
+		!isSubmitting && name.trim().length > 0 && priceCents > 0 && category_id.length > 0
 	);
 
 	function handleSubmit() {
-		if (!canSave) return;
+		if (!canSave) {
+			return;
+		}
 		isSubmitting = true;
 		onSave({ name: name.trim(), price: priceCents, category_id, available });
 	}
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="modal-backdrop" onclick={onCancel} onkeydown={(e) => e.key === "Escape" && onCancel()}>
+<div class="modal-backdrop" onclick={onCancel} onkeydown={(e) => e.key === 'Escape' && onCancel()}>
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div class="modal" onclick={(e) => e.stopPropagation()}>
-		<h2>{product ? $t("productForm.editTitle") : $t("productForm.newTitle")}</h2>
+		<h2>{product ? $t('productForm.editTitle') : $t('productForm.newTitle')}</h2>
 
 		<div class="form-field">
-			<label for="product-name">{$t("productForm.name")}</label>
-			<input id="product-name" type="text" bind:value={name} placeholder={$t("productForm.namePlaceholder")} />
+			<label for="product-name">{$t('productForm.name')}</label>
+			<input
+				id="product-name"
+				type="text"
+				bind:value={name}
+				placeholder={$t('productForm.namePlaceholder')}
+			/>
 		</div>
 
 		<div class="form-field">
-			<label for="product-price">{$t("productForm.priceLabel")}</label>
+			<label for="product-price">{$t('productForm.priceLabel')}</label>
 			<input
 				id="product-price"
 				type="text"
@@ -56,7 +68,7 @@
 		</div>
 
 		<fieldset class="form-field radio-group">
-			<legend>{$t("productForm.category")}</legend>
+			<legend>{$t('productForm.category')}</legend>
 			{#each categories as cat (cat.id)}
 				<label>
 					<input type="radio" name="category" value={cat.id} bind:group={category_id} />
@@ -69,15 +81,17 @@
 			<div class="form-field checkbox-field">
 				<label>
 					<input type="checkbox" bind:checked={available} />
-					{$t("productForm.available")}
+					{$t('productForm.available')}
 				</label>
 			</div>
 		{/if}
 
 		<div class="modal-actions">
-			<button class="btn btn-cancel" onclick={onCancel} disabled={isSubmitting}>{$t("productForm.cancel")}</button>
+			<button class="btn btn-cancel" onclick={onCancel} disabled={isSubmitting}
+				>{$t('productForm.cancel')}</button
+			>
 			<button class="btn btn-confirm" onclick={handleSubmit} disabled={!canSave}>
-				{isSubmitting ? $t("productForm.saving") : $t("productForm.save")}
+				{isSubmitting ? $t('productForm.saving') : $t('productForm.save')}
 			</button>
 		</div>
 	</div>
@@ -120,7 +134,7 @@
 		margin-bottom: 4px;
 	}
 
-	.form-field input[type="text"] {
+	.form-field input[type='text'] {
 		width: 100%;
 		padding: 10px 12px;
 		border: 1px solid #ccc;
@@ -167,7 +181,7 @@
 		color: #1d4ed8;
 	}
 
-	.radio-group input[type="radio"] {
+	.radio-group input[type='radio'] {
 		position: absolute;
 		opacity: 0;
 		pointer-events: none;
@@ -180,7 +194,7 @@
 		cursor: pointer;
 	}
 
-	.checkbox-field input[type="checkbox"] {
+	.checkbox-field input[type='checkbox'] {
 		width: 18px;
 		height: 18px;
 	}
@@ -227,7 +241,7 @@
 			color: #f6f6f6;
 		}
 
-		.form-field input[type="text"] {
+		.form-field input[type='text'] {
 			background: #333;
 			border-color: #555;
 			color: #f6f6f6;

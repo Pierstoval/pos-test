@@ -1,27 +1,28 @@
 <script lang="ts">
-	import { onMount } from "svelte";
-	import { api_call } from "$lib/api";
-	import { save } from "@tauri-apps/plugin-dialog";
-	import { writeFile } from "@tauri-apps/plugin-fs";
-	import type { DashboardSummary, AppVersion } from "$lib/types";
-	import { formatPrice } from "$lib/utils/format";
-	import { t } from "$lib/i18n";
+	import { onMount } from 'svelte';
+	import { api_call } from '$lib/api';
+	import { save } from '@tauri-apps/plugin-dialog';
+	import { writeFile } from '@tauri-apps/plugin-fs';
+	import type { DashboardSummary, AppVersion } from '$lib/types';
+	import { formatPrice } from '$lib/utils/format';
+	import { t } from '$lib/i18n';
 
 	let summary = $state<DashboardSummary | null>(null);
 	let dbPath = $state<string | null>(null);
 	let appVersion = $state<AppVersion | null>(null);
 	let isLoading = $state(true);
 	let error = $state<string | null>(null);
+	let isResetting = $state(false);
 
 	onMount(async () => {
 		try {
 			[summary, dbPath, appVersion] = await Promise.all([
-				api_call<DashboardSummary>("get_dashboard_summary"),
-				api_call<string>("get_db_path"),
-				api_call<AppVersion>("get_app_version"),
+				api_call<DashboardSummary>('get_dashboard_summary'),
+				api_call<string>('get_db_path'),
+				api_call<AppVersion>('get_app_version')
 			]);
 		} catch (e) {
-			error = $t("dashboard.loadError", { error: String(e) });
+			error = $t('dashboard.loadError', { error: String(e) });
 		} finally {
 			isLoading = false;
 		}
@@ -35,46 +36,94 @@
 		return `"${value.replace(/"/g, '""')}"`;
 	}
 
+	async function resetDatabase() {
+		if (!confirm($t('dashboard.resetConfirm'))) {
+			return;
+		}
+		isResetting = true;
+		try {
+			await api_call('reset_database');
+			window.location.reload();
+		} catch (e) {
+			alert($t('dashboard.resetFailed', { error: String(e) }));
+			isResetting = false;
+		}
+	}
+
 	function exportCsv() {
-		if (!summary) return;
+		if (!summary) {
+			return;
+		}
 
 		const lines: string[] = [];
 
 		// Sales by product table
-		lines.push([q($t("dashboard.colProduct")), q($t("dashboard.colUnitPrice")), q($t("dashboard.colQuantity")), q($t("dashboard.colTotal"))].join(";"));
+		lines.push(
+			[
+				q($t('dashboard.colProduct')),
+				q($t('dashboard.colUnitPrice')),
+				q($t('dashboard.colQuantity')),
+				q($t('dashboard.colTotal'))
+			].join(';')
+		);
 		for (const row of summary.per_product) {
 			const unitPrice = centsToEuros(Math.round(row.total_revenue / row.total_quantity));
-			lines.push([
-				q(row.product_name),
-				q(unitPrice),
-				q(String(row.total_quantity)),
-				q(centsToEuros(row.total_revenue)),
-			].join(";"));
+			lines.push(
+				[
+					q(row.product_name),
+					q(unitPrice),
+					q(String(row.total_quantity)),
+					q(centsToEuros(row.total_revenue))
+				].join(';')
+			);
 		}
-		lines.push([q($t("dashboard.productTableTotal")), q(""), q(""), q(centsToEuros(summary.total_revenue))].join(";"));
+		lines.push(
+			[
+				q($t('dashboard.productTableTotal')),
+				q(''),
+				q(''),
+				q(centsToEuros(summary.total_revenue))
+			].join(';')
+		);
 
 		// Blank separator line
-		lines.push("");
+		lines.push('');
 
 		// Payment method breakdown table
-		lines.push([q($t("dashboard.colPaymentMethod")), q($t("dashboard.colRevenue")), q($t("dashboard.colTransactions"))].join(";"));
+		lines.push(
+			[
+				q($t('dashboard.colPaymentMethod')),
+				q($t('dashboard.colRevenue')),
+				q($t('dashboard.colTransactions'))
+			].join(';')
+		);
 		for (const row of summary.per_payment_method) {
-			lines.push([
-				q(row.payment_method),
-				q(centsToEuros(row.total_revenue)),
-				q(String(row.transaction_count)),
-			].join(";"));
+			lines.push(
+				[
+					q(row.payment_method),
+					q(centsToEuros(row.total_revenue)),
+					q(String(row.transaction_count))
+				].join(';')
+			);
 		}
-		lines.push([q($t("dashboard.colTotal")), q(centsToEuros(summary.total_revenue)), q(String(summary.total_transactions))].join(";"));
+		lines.push(
+			[
+				q($t('dashboard.colTotal')),
+				q(centsToEuros(summary.total_revenue)),
+				q(String(summary.total_transactions))
+			].join(';')
+		);
 
-		const csv = lines.join("\n");
-		const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+		const csv = lines.join('\n');
+		const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
 
 		save({
-			defaultPath: "tableau-de-bord.csv",
-			filters: [{ name: "CSV", extensions: ["csv"] }],
+			defaultPath: 'tableau-de-bord.csv',
+			filters: [{ name: 'CSV', extensions: ['csv'] }]
 		}).then((path: string | null) => {
-			if (!path) return;
+			if (!path) {
+				return;
+			}
 			return writeFile(path, blob.stream());
 		});
 	}
@@ -82,49 +131,51 @@
 
 <div class="dashboard-page">
 	<div class="header">
-		<h1>{$t("dashboard.title")}</h1>
+		<h1>{$t('dashboard.title')}</h1>
 		{#if summary && summary.total_transactions > 0}
 			<button class="export-btn" onclick={exportCsv}>
-				{$t("dashboard.exportCsv")}
+				{$t('dashboard.exportCsv')}
 			</button>
 		{/if}
 	</div>
 
 	{#if isLoading}
-		<div class="status-msg">{$t("dashboard.loading")}</div>
+		<div class="status-msg">{$t('dashboard.loading')}</div>
 	{:else if error}
 		<div class="status-msg error">{error}</div>
 	{:else if summary && summary.total_transactions === 0}
-		<div class="status-msg">{$t("dashboard.noSales")}</div>
+		<div class="status-msg">{$t('dashboard.noSales')}</div>
 	{:else if summary}
 		<div class="kpi-row">
 			<div class="kpi-card">
-				<span class="kpi-label">{$t("dashboard.totalRevenue")}</span>
+				<span class="kpi-label">{$t('dashboard.totalRevenue')}</span>
 				<span class="kpi-value">{formatPrice(summary.total_revenue)}</span>
 			</div>
 			<div class="kpi-card">
-				<span class="kpi-label">{$t("dashboard.totalTransactions")}</span>
+				<span class="kpi-label">{$t('dashboard.totalTransactions')}</span>
 				<span class="kpi-value">{summary.total_transactions}</span>
 			</div>
 		</div>
 
 		<section class="section">
-			<h2>{$t("dashboard.productTable")}</h2>
+			<h2>{$t('dashboard.productTable')}</h2>
 			<div class="table-wrapper">
 				<table>
 					<thead>
 						<tr>
-							<th>{$t("dashboard.colProduct")}</th>
-							<th class="num">{$t("dashboard.colUnitPrice")}</th>
-							<th class="num">{$t("dashboard.colQuantity")}</th>
-							<th class="num">{$t("dashboard.colTotal")}</th>
+							<th>{$t('dashboard.colProduct')}</th>
+							<th class="num">{$t('dashboard.colUnitPrice')}</th>
+							<th class="num">{$t('dashboard.colQuantity')}</th>
+							<th class="num">{$t('dashboard.colTotal')}</th>
 						</tr>
 					</thead>
 					<tbody>
 						{#each summary.per_product as row (row.product_id)}
 							<tr>
 								<td>{row.product_name}</td>
-								<td class="num">{formatPrice(Math.round(row.total_revenue / row.total_quantity))}</td>
+								<td class="num"
+									>{formatPrice(Math.round(row.total_revenue / row.total_quantity))}</td
+								>
 								<td class="num">{row.total_quantity}</td>
 								<td class="num">{formatPrice(row.total_revenue)}</td>
 							</tr>
@@ -132,7 +183,7 @@
 					</tbody>
 					<tfoot>
 						<tr>
-							<td colspan="3">{$t("dashboard.productTableTotal")}</td>
+							<td colspan="3">{$t('dashboard.productTableTotal')}</td>
 							<td class="num">{formatPrice(summary.total_revenue)}</td>
 						</tr>
 					</tfoot>
@@ -141,20 +192,20 @@
 		</section>
 
 		<section class="section">
-			<h2>{$t("dashboard.paymentBreakdown")}</h2>
+			<h2>{$t('dashboard.paymentBreakdown')}</h2>
 			<div class="table-wrapper">
 				<table>
 					<thead>
 						<tr>
-							<th>{$t("dashboard.colPaymentMethod")}</th>
-							<th class="num">{$t("dashboard.colRevenue")}</th>
-							<th class="num">{$t("dashboard.colTransactions")}</th>
+							<th>{$t('dashboard.colPaymentMethod')}</th>
+							<th class="num">{$t('dashboard.colRevenue')}</th>
+							<th class="num">{$t('dashboard.colTransactions')}</th>
 						</tr>
 					</thead>
 					<tbody>
 						{#each summary.per_payment_method as row (row.payment_method)}
 							<tr>
-								<td>{$t("dashboard.paymentMethod." + row.payment_method)}</td>
+								<td>{$t('dashboard.paymentMethod.' + row.payment_method)}</td>
 								<td class="num">{formatPrice(row.total_revenue)}</td>
 								<td class="num">{row.transaction_count}</td>
 							</tr>
@@ -167,15 +218,26 @@
 
 	{#if dbPath || appVersion}
 		<section class="app-info">
-			<h2>{$t("dashboard.appInfo")}</h2>
+			<h2>{$t('dashboard.appInfo')}</h2>
 			{#if appVersion}
-				<p><span class="info-label">{$t("dashboard.version")} :</span> <code>{appVersion.version}</code> ({appVersion.os}/{appVersion.arch})</p>
+				<p>
+					<span class="info-label">{$t('dashboard.version')} :</span>
+					<code>{appVersion.version}</code>
+					({appVersion.os}/{appVersion.arch})
+				</p>
 			{/if}
 			{#if dbPath}
-				<p><span class="info-label">{$t("dashboard.dbPath")} :</span> <code>{dbPath}</code></p>
+				<p><span class="info-label">{$t('dashboard.dbPath')} :</span> <code>{dbPath}</code></p>
 			{/if}
 		</section>
 	{/if}
+
+	<section class="reset-section">
+		<p class="reset-warning">{$t('dashboard.resetWarning')}</p>
+		<button class="reset-btn" onclick={resetDatabase} disabled={isResetting}>
+			{isResetting ? $t('dashboard.resetting') : $t('dashboard.resetDb')}
+		</button>
+	</section>
 </div>
 
 <style>
@@ -335,6 +397,44 @@
 		word-break: break-all;
 	}
 
+	.reset-section {
+		margin-top: 32px;
+		padding-top: 16px;
+		border-top: 1px solid #e0e0e0;
+		display: flex;
+		align-items: center;
+		gap: 12px;
+	}
+
+	.reset-warning {
+		margin: 0;
+		font-size: 0.78rem;
+		color: #999;
+	}
+
+	.reset-btn {
+		flex-shrink: 0;
+		padding: 0 10px;
+		height: 28px;
+		border: 1px solid #dc2626;
+		border-radius: 4px;
+		background: transparent;
+		color: #dc2626;
+		font-size: 0.75rem;
+		font-weight: 600;
+		cursor: pointer;
+	}
+
+	.reset-btn:hover:not(:disabled) {
+		background: #dc2626;
+		color: #fff;
+	}
+
+	.reset-btn:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
 	@media (prefers-color-scheme: dark) {
 		.export-btn {
 			border-color: #60a5fa;
@@ -370,6 +470,10 @@
 
 		.app-info code {
 			background: #333;
+		}
+
+		.reset-section {
+			border-top-color: #444;
 		}
 	}
 </style>

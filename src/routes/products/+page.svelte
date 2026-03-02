@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { onMount } from "svelte";
-	import { api_call } from "$lib/api";
-	import type { Product, Category, CreateProductPayload, UpdateProductPayload } from "$lib/types";
-	import { formatPrice } from "$lib/utils/format";
-	import ProductFormModal from "$lib/components/ProductFormModal.svelte";
-	import { t } from "$lib/i18n";
+	import { onMount } from 'svelte';
+	import { api_call } from '$lib/api';
+	import type { Product, Category, CreateProductPayload, UpdateProductPayload } from '$lib/types';
+	import { formatPrice } from '$lib/utils/format';
+	import ProductFormModal from '$lib/components/ProductFormModal.svelte';
+	import { t } from '$lib/i18n';
 
 	let products = $state<Product[]>([]);
 	let categories = $state<Category[]>([]);
@@ -13,9 +13,7 @@
 	let isLoading = $state(true);
 	let error = $state<string | null>(null);
 
-	let categoryMap = $derived(
-		Object.fromEntries(categories.map((c) => [c.id, c])),
-	);
+	let categoryMap = $derived(Object.fromEntries(categories.map((c) => [c.id, c])));
 
 	onMount(async () => {
 		await loadData();
@@ -26,11 +24,11 @@
 		error = null;
 		try {
 			[products, categories] = await Promise.all([
-				api_call<Product[]>("list_products"),
-				api_call<Category[]>("list_categories"),
+				api_call<Product[]>('list_products'),
+				api_call<Category[]>('list_categories')
 			]);
 		} catch (e) {
-			error = $t("products.loadError", { error: String(e) });
+			error = $t('products.loadError', { error: String(e) });
 		} finally {
 			isLoading = false;
 		}
@@ -64,72 +62,71 @@
 					name: data.name,
 					price: data.price,
 					category_id: data.category_id,
-					available: data.available,
+					available: data.available
 				};
-				await api_call<Product>("update_product", { payload });
+				await api_call<Product>('update_product', { payload });
 			} else {
 				const payload: CreateProductPayload = {
 					name: data.name,
 					price: data.price,
-					category_id: data.category_id,
+					category_id: data.category_id
 				};
-				await api_call<Product>("create_product", { payload });
+				await api_call<Product>('create_product', { payload });
 			}
 			closeForm();
 			await loadData();
 		} catch (e) {
-			error = $t("products.saveError", { error: String(e) });
+			error = $t('products.saveError', { error: String(e) });
 			closeForm();
 		}
 	}
 
 	async function toggleAvailability(productId: string) {
 		try {
-			const newAvailable = await api_call<boolean>("toggle_product_availability", { productId });
-			products = products.map((p) =>
-				p.id === productId ? { ...p, available: newAvailable } : p,
-			);
+			const newAvailable = await api_call<boolean>('toggle_product_availability', { productId });
+			products = products.map((p) => (p.id === productId ? { ...p, available: newAvailable } : p));
 		} catch (e) {
-			error = $t("products.toggleError", { error: String(e) });
+			error = $t('products.toggleError', { error: String(e) });
 		}
 	}
 
 	async function deleteProduct(product: Product) {
-		const confirmed = window.confirm($t("products.deleteConfirm", { name: product.name }));
-		if (!confirmed) return;
+		const confirmed = window.confirm($t('products.deleteConfirm', { name: product.name }));
+		if (!confirmed) {
+			return;
+		}
 
 		try {
-			await api_call("delete_product", { productId: product.id });
+			await api_call('delete_product', { productId: product.id });
 			await loadData();
 		} catch (e) {
-			error = $t("products.deleteError", { error: String(e) });
+			error = $t('products.deleteError', { error: String(e) });
 		}
 	}
-
 </script>
 
 <div class="products-page">
 	<div class="header">
-		<h1>{$t("products.title")}</h1>
-		<button class="btn btn-add" onclick={openCreate}>{$t("products.addButton")}</button>
+		<h1>{$t('products.title')}</h1>
+		<button class="btn btn-add" onclick={openCreate}>{$t('products.addButton')}</button>
 	</div>
 
 	{#if isLoading}
-		<div class="status-msg">{$t("products.loading")}</div>
+		<div class="status-msg">{$t('products.loading')}</div>
 	{:else if error}
 		<div class="status-msg error">{error}</div>
 	{:else if products.length === 0}
-		<div class="status-msg">{$t("products.empty")}</div>
+		<div class="status-msg">{$t('products.empty')}</div>
 	{:else}
 		<div class="table-wrapper">
 			<table>
 				<thead>
 					<tr>
-						<th>{$t("products.colName")}</th>
-						<th>{$t("products.colPrice")}</th>
-						<th>{$t("products.colCategory")}</th>
-						<th>{$t("products.colAvailable")}</th>
-						<th>{$t("products.colActions")}</th>
+						<th>{$t('products.colName')}</th>
+						<th>{$t('products.colPrice')}</th>
+						<th>{$t('products.colCategory')}</th>
+						<th>{$t('products.colAvailable')}</th>
+						<th>{$t('products.colActions')}</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -140,7 +137,8 @@
 							<td>
 								<span
 									class="badge"
-									style="background: {categoryMap[product.category_id]?.color ?? '#888'}22; color: {categoryMap[product.category_id]?.color ?? '#888'};"
+									style="background: {categoryMap[product.category_id]?.color ??
+										'#888'}22; color: {categoryMap[product.category_id]?.color ?? '#888'};"
 								>
 									{categoryMap[product.category_id]?.label ?? product.category_id}
 								</span>
@@ -152,15 +150,15 @@
 									class:toggle-off={!product.available}
 									onclick={() => toggleAvailability(product.id)}
 								>
-									{product.available ? $t("products.yes") : $t("products.no")}
+									{product.available ? $t('products.yes') : $t('products.no')}
 								</button>
 							</td>
 							<td class="actions-cell">
 								<button class="btn btn-edit" onclick={() => openEdit(product)}>
-									{$t("products.edit")}
+									{$t('products.edit')}
 								</button>
 								<button class="btn btn-delete" onclick={() => deleteProduct(product)}>
-									{$t("products.delete")}
+									{$t('products.delete')}
 								</button>
 							</td>
 						</tr>
@@ -172,7 +170,12 @@
 </div>
 
 {#if isFormOpen}
-	<ProductFormModal product={editingProduct} {categories} onSave={handleSave} onCancel={closeForm} />
+	<ProductFormModal
+		product={editingProduct}
+		{categories}
+		onSave={handleSave}
+		onCancel={closeForm}
+	/>
 {/if}
 
 <style>

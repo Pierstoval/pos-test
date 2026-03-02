@@ -1,23 +1,23 @@
 <script lang="ts">
-	import type { CartItem } from "$lib/types";
-	import { formatPrice } from "$lib/utils/format";
-	import { t } from "$lib/i18n";
+	import type { CartItem } from '$lib/types';
+	import { formatPrice } from '$lib/utils/format';
+	import { t } from '$lib/i18n';
 
 	interface Props {
 		items: CartItem[];
 		total: number;
-		onConfirm: (paymentMethod: "cash" | "card") => void;
+		onConfirm: (paymentMethod: 'cash' | 'card') => void;
 		onCancel: () => void;
 	}
 
 	let { items, total, onConfirm, onCancel }: Props = $props();
 
-	let paymentMethod = $state<"cash" | "card" | null>(null);
-	let cashReceived = $state("");
+	let paymentMethod = $state<'cash' | 'card' | null>(null);
+	let cashReceived = $state('');
 	let isSubmitting = $state(false);
 
 	let cashReceivedCents = $derived.by(() => {
-		const val = parseFloat(cashReceived.replace(",", "."));
+		const val = parseFloat(cashReceived.replace(',', '.'));
 		return isNaN(val) ? 0 : Math.round(val * 100);
 	});
 
@@ -25,34 +25,35 @@
 
 	let canConfirm = $derived.by(() => {
 		return !(
-			isSubmitting
-			|| !paymentMethod
-			|| (paymentMethod === "cash" && cashReceivedCents < total)
+			isSubmitting ||
+			!paymentMethod ||
+			(paymentMethod === 'cash' && cashReceivedCents < total)
 		);
-
 	});
 
-	function selectPayment(method: "cash" | "card") {
+	function selectPayment(method: 'cash' | 'card') {
 		paymentMethod = method;
-		if (method === "cash") {
-			cashReceived = (total / 100).toFixed(2).replace(".", ",");
+		if (method === 'cash') {
+			cashReceived = (total / 100).toFixed(2).replace('.', ',');
 		} else {
-			cashReceived = "";
+			cashReceived = '';
 		}
 	}
 
 	async function handleConfirm() {
-		if (!paymentMethod || !canConfirm) return;
+		if (!paymentMethod || !canConfirm) {
+			return;
+		}
 		isSubmitting = true;
 		onConfirm(paymentMethod);
 	}
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="modal-backdrop" onclick={onCancel} onkeydown={(e) => e.key === "Escape" && onCancel()}>
+<div class="modal-backdrop" onclick={onCancel} onkeydown={(e) => e.key === 'Escape' && onCancel()}>
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div class="modal" onclick={(e) => e.stopPropagation()}>
-		<h2>{$t("checkout.title")}</h2>
+		<h2>{$t('checkout.title')}</h2>
 
 		<div class="summary">
 			{#each items as item (item.product.id)}
@@ -62,7 +63,7 @@
 				</div>
 			{/each}
 			<div class="summary-total">
-				<span>{$t("checkout.total")}</span>
+				<span>{$t('checkout.total')}</span>
 				<span>{formatPrice(total)}</span>
 			</div>
 		</div>
@@ -70,43 +71,40 @@
 		<div class="payment-methods">
 			<button
 				class="payment-btn"
-				class:selected={paymentMethod === "cash"}
-				onclick={() => selectPayment("cash")}
+				class:selected={paymentMethod === 'cash'}
+				onclick={() => selectPayment('cash')}
 			>
-				{$t("checkout.cash")}
+				{$t('checkout.cash')}
 			</button>
 			<button
 				class="payment-btn"
-				class:selected={paymentMethod === "card"}
-				onclick={() => selectPayment("card")}
+				class:selected={paymentMethod === 'card'}
+				onclick={() => selectPayment('card')}
 			>
-				{$t("checkout.card")}
+				{$t('checkout.card')}
 			</button>
 		</div>
 
-		{#if paymentMethod === "cash"}
+		{#if paymentMethod === 'cash'}
 			<div class="cash-section">
 				<label>
-					{$t("checkout.amountReceived")}
-					<input
-						type="text"
-						inputmode="decimal"
-						placeholder="0,00"
-						bind:value={cashReceived}
-					/>
+					{$t('checkout.amountReceived')}
+					<input type="text" inputmode="decimal" placeholder="0,00" bind:value={cashReceived} />
 				</label>
 				{#if cashReceivedCents >= total}
 					<div class="change">
-						{$t("checkout.change")} <strong>{formatPrice(change)}</strong>
+						{$t('checkout.change')} <strong>{formatPrice(change)}</strong>
 					</div>
 				{/if}
 			</div>
 		{/if}
 
 		<div class="modal-actions">
-			<button class="btn btn-cancel" onclick={onCancel} disabled={isSubmitting}>{$t("checkout.cancel")}</button>
+			<button class="btn btn-cancel" onclick={onCancel} disabled={isSubmitting}
+				>{$t('checkout.cancel')}</button
+			>
 			<button class="btn btn-confirm" onclick={handleConfirm} disabled={!canConfirm}>
-				{isSubmitting ? $t("checkout.submitting") : $t("checkout.confirm")}
+				{isSubmitting ? $t('checkout.submitting') : $t('checkout.confirm')}
 			</button>
 		</div>
 	</div>

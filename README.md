@@ -43,5 +43,4 @@ Run the `pnpm run tauri build` command to build the project for production.
 
 ![](./docs/Dashboard.png)
 
-
 </details>

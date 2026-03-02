@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { Product, Category } from "$lib/types";
-	import { formatPrice } from "$lib/utils/format";
+	import type { Product, Category } from '$lib/types';
+	import { formatPrice } from '$lib/utils/format';
 
 	interface Props {
 		products: Product[];
@@ -10,24 +10,24 @@
 
 	let { products, categories, onProductClick }: Props = $props();
 
-	let categoryMap = $derived(
-		Object.fromEntries(categories.map((c) => [c.id, c])),
-	);
+	let categoryMap = $derived(Object.fromEntries(categories.map((c) => [c.id, c])));
 
 	let sortedProducts = $derived(
 		[...products].sort((a, b) => {
-			if (a.available !== b.available) return a.available ? -1 : 1;
+			if (a.available !== b.available) {
+				return a.available ? -1 : 1;
+			}
 			const catA = categoryMap[a.category_id]?.label ?? a.category_id;
 			const catB = categoryMap[b.category_id]?.label ?? b.category_id;
 			const catCmp = catA.localeCompare(catB);
-			if (catCmp !== 0) return catCmp;
+			if (catCmp !== 0) {
+				return catCmp;
+			}
 			return a.name.localeCompare(b.name);
-		}),
+		})
 	);
 
-	let categoryColors = $derived(
-		Object.fromEntries(categories.map((c) => [c.id, c.color])),
-	);
+	let categoryColors = $derived(Object.fromEntries(categories.map((c) => [c.id, c.color])));
 </script>
 
 <div class="product-grid">
@@ -70,7 +70,9 @@
 		font-weight: 600;
 		cursor: pointer;
 		overflow: hidden;
-		transition: filter 0.15s, transform 0.1s;
+		transition:
+			filter 0.15s,
+			transform 0.1s;
 		user-select: none;
 		-webkit-tap-highlight-color: transparent;
 	}
@@ -91,7 +93,7 @@
 	}
 
 	.product-btn.unavailable::after {
-		content: "";
+		content: '';
 		position: absolute;
 		inset: 0;
 		background: linear-gradient(

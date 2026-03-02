@@ -1,18 +1,18 @@
-import { invoke } from "@tauri-apps/api/core";
+import { invoke } from '@tauri-apps/api/core';
 
-type ApiBackend = "tauri" | "http";
+type ApiBackend = 'tauri' | 'http';
 
-const BACKEND: ApiBackend = "tauri";
+const BACKEND: ApiBackend = 'tauri';
 
 export async function api_call<T = void>(
 	command: string,
-	params: Record<string, unknown> = {},
+	params: Record<string, unknown> = {}
 ): Promise<T> {
 	switch (BACKEND) {
-		case "tauri":
+		case 'tauri':
 			return invoke<T>(command, params);
-		case "http":
+		case 'http':
 			// Future: map command names to HTTP endpoints and call fetch().
-			throw new Error("HTTP backend not yet implemented");
+			throw new Error('HTTP backend not yet implemented');
 	}
 }

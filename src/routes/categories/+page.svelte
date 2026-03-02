@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { onMount } from "svelte";
-	import { api_call } from "$lib/api";
-	import type { Category, CreateCategoryPayload, UpdateCategoryPayload } from "$lib/types";
-	import CategoryFormModal from "$lib/components/CategoryFormModal.svelte";
-	import { t } from "$lib/i18n";
+	import { onMount } from 'svelte';
+	import { api_call } from '$lib/api';
+	import type { Category, CreateCategoryPayload, UpdateCategoryPayload } from '$lib/types';
+	import CategoryFormModal from '$lib/components/CategoryFormModal.svelte';
+	import { t } from '$lib/i18n';
 
 	let categories = $state<Category[]>([]);
 	let editingCategory = $state<Category | null>(null);
@@ -19,9 +19,9 @@
 		isLoading = true;
 		error = null;
 		try {
-			categories = await api_call<Category[]>("list_categories");
+			categories = await api_call<Category[]>('list_categories');
 		} catch (e) {
-			error = $t("categories.loadError", { error: String(e) });
+			error = $t('categories.loadError', { error: String(e) });
 		} finally {
 			isLoading = false;
 		}
@@ -43,14 +43,16 @@
 	}
 
 	async function deleteCategory(category: Category) {
-		const confirmed = window.confirm($t("categories.deleteConfirm", { label: category.label }));
-		if (!confirmed) return;
+		const confirmed = window.confirm($t('categories.deleteConfirm', { label: category.label }));
+		if (!confirmed) {
+			return;
+		}
 
 		try {
-			await api_call("delete_category", { categoryId: category.id });
+			await api_call('delete_category', { categoryId: category.id });
 			await loadCategories();
 		} catch (e) {
-			error = $t("categories.deleteError", { error: String(e) });
+			error = $t('categories.deleteError', { error: String(e) });
 		}
 	}
 
@@ -60,21 +62,21 @@
 				const payload: UpdateCategoryPayload = {
 					id: data.id,
 					label: data.label,
-					color: data.color,
+					color: data.color
 				};
-				await api_call<Category>("update_category", { payload });
+				await api_call<Category>('update_category', { payload });
 			} else {
 				const payload: CreateCategoryPayload = {
 					id: data.id,
 					label: data.label,
-					color: data.color,
+					color: data.color
 				};
-				await api_call<Category>("create_category", { payload });
+				await api_call<Category>('create_category', { payload });
 			}
 			closeForm();
 			await loadCategories();
 		} catch (e) {
-			error = $t("categories.saveError", { error: String(e) });
+			error = $t('categories.saveError', { error: String(e) });
 			closeForm();
 		}
 	}
@@ -82,25 +84,25 @@
 
 <div class="categories-page">
 	<div class="header">
-		<h1>{$t("categories.title")}</h1>
-		<button class="btn btn-add" onclick={openCreate}>{$t("categories.addButton")}</button>
+		<h1>{$t('categories.title')}</h1>
+		<button class="btn btn-add" onclick={openCreate}>{$t('categories.addButton')}</button>
 	</div>
 
 	{#if isLoading}
-		<div class="status-msg">{$t("categories.loading")}</div>
+		<div class="status-msg">{$t('categories.loading')}</div>
 	{:else if error}
 		<div class="status-msg error">{error}</div>
 	{:else if categories.length === 0}
-		<div class="status-msg">{$t("categories.empty")}</div>
+		<div class="status-msg">{$t('categories.empty')}</div>
 	{:else}
 		<div class="table-wrapper">
 			<table>
 				<thead>
 					<tr>
-						<th>{$t("categories.colId")}</th>
-						<th>{$t("categories.colLabel")}</th>
-						<th>{$t("categories.colColor")}</th>
-						<th>{$t("categories.colActions")}</th>
+						<th>{$t('categories.colId')}</th>
+						<th>{$t('categories.colLabel')}</th>
+						<th>{$t('categories.colColor')}</th>
+						<th>{$t('categories.colActions')}</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -109,18 +111,15 @@
 							<td class="id-cell"><code>{cat.id}</code></td>
 							<td>{cat.label}</td>
 							<td>
-								<span
-									class="color-swatch"
-									style="background: {cat.color};"
-								></span>
+								<span class="color-swatch" style="background: {cat.color};"></span>
 								<code>{cat.color}</code>
 							</td>
 							<td class="actions-cell">
 								<button class="btn btn-edit" onclick={() => openEdit(cat)}>
-									{$t("categories.edit")}
+									{$t('categories.edit')}
 								</button>
 								<button class="btn btn-delete" onclick={() => deleteCategory(cat)}>
-									{$t("categories.delete")}
+									{$t('categories.delete')}
 								</button>
 							</td>
 						</tr>

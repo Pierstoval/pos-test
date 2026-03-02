@@ -30,7 +30,7 @@ export interface Order {
 	id: string;
 	created_at: string;
 	total: number;
-	payment_method: "cash" | "card";
+	payment_method: 'cash' | 'card';
 }
 
 export interface OrderItem {
@@ -57,7 +57,7 @@ export interface CreateOrderItemPayload {
 
 export interface CreateOrderPayload {
 	items: CreateOrderItemPayload[];
-	payment_method: "cash" | "card";
+	payment_method: 'cash' | 'card';
 }
 
 export interface CreateProductPayload {
@@ -94,7 +94,7 @@ export interface ProductSalesSummary {
 }
 
 export interface PaymentMethodBreakdown {
-	payment_method: "cash" | "card";
+	payment_method: 'cash' | 'card';
 	total_revenue: number;
 	transaction_count: number;
 }

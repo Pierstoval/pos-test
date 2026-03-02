@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { onMount } from "svelte";
-	import { api_call } from "$lib/api";
-	import type { Product, Category, CartItem, OrderWithItems, CreateOrderPayload } from "$lib/types";
-	import ProductGrid from "$lib/components/ProductGrid.svelte";
-	import OrderPanel from "$lib/components/OrderPanel.svelte";
-	import CheckoutModal from "$lib/components/CheckoutModal.svelte";
-	import { t } from "$lib/i18n";
+	import { onMount } from 'svelte';
+	import { api_call } from '$lib/api';
+	import type { Product, Category, CartItem, OrderWithItems, CreateOrderPayload } from '$lib/types';
+	import ProductGrid from '$lib/components/ProductGrid.svelte';
+	import OrderPanel from '$lib/components/OrderPanel.svelte';
+	import CheckoutModal from '$lib/components/CheckoutModal.svelte';
+	import { t } from '$lib/i18n';
 
 	let products = $state<Product[]>([]);
 	let categories = $state<Category[]>([]);
@@ -19,11 +19,11 @@
 	onMount(async () => {
 		try {
 			[products, categories] = await Promise.all([
-				api_call<Product[]>("list_products"),
-				api_call<Category[]>("list_categories"),
+				api_call<Product[]>('list_products'),
+				api_call<Category[]>('list_categories')
 			]);
 		} catch (e) {
-			error = $t("sales.loadError", { error: String(e) });
+			error = $t('sales.loadError', { error: String(e) });
 		} finally {
 			isLoading = false;
 		}
@@ -33,7 +33,7 @@
 		const existing = cart.find((i) => i.product.id === product.id);
 		if (existing) {
 			cart = cart.map((i) =>
-				i.product.id === product.id ? { ...i, quantity: i.quantity + 1 } : i,
+				i.product.id === product.id ? { ...i, quantity: i.quantity + 1 } : i
 			);
 		} else {
 			cart = [...cart, { product, quantity: 1 }];
@@ -41,9 +41,7 @@
 	}
 
 	function increaseQuantity(productId: string) {
-		cart = cart.map((i) =>
-			i.product.id === productId ? { ...i, quantity: i.quantity + 1 } : i,
-		);
+		cart = cart.map((i) => (i.product.id === productId ? { ...i, quantity: i.quantity + 1 } : i));
 	}
 
 	function decreaseQuantity(productId: string) {
@@ -56,23 +54,23 @@
 		cart = [];
 	}
 
-	async function submitOrder(paymentMethod: "cash" | "card") {
+	async function submitOrder(paymentMethod: 'cash' | 'card') {
 		const payload: CreateOrderPayload = {
 			items: cart.map((i) => ({
 				product_id: i.product.id,
 				product_name: i.product.name,
 				unit_price: i.product.price,
-				quantity: i.quantity,
+				quantity: i.quantity
 			})),
-			payment_method: paymentMethod,
+			payment_method: paymentMethod
 		};
 
 		try {
-			await api_call<OrderWithItems>("create_order", { payload });
+			await api_call<OrderWithItems>('create_order', { payload });
 			cart = [];
 			isCheckoutOpen = false;
 		} catch (e) {
-			error = $t("sales.orderError", { error: String(e) });
+			error = $t('sales.orderError', { error: String(e) });
 			isCheckoutOpen = false;
 		}
 	}
@@ -80,7 +78,7 @@
 
 <div class="sales-screen">
 	{#if isLoading}
-		<div class="status-msg">{$t("sales.loading")}</div>
+		<div class="status-msg">{$t('sales.loading')}</div>
 	{:else if error}
 		<div class="status-msg error">{error}</div>
 	{:else}

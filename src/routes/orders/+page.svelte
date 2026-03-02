@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { onMount } from "svelte";
-	import { api_call } from "$lib/api";
+	import { onMount } from 'svelte';
+	import { api_call } from '$lib/api';
 	import { save } from '@tauri-apps/plugin-dialog';
 	import { writeTextFile, writeFile } from '@tauri-apps/plugin-fs';
-	import type { OrderWithItems } from "$lib/types";
-	import { formatPrice } from "$lib/utils/format";
-	import { t } from "$lib/i18n";
+	import type { OrderWithItems } from '$lib/types';
+	import { formatPrice } from '$lib/utils/format';
+	import { t } from '$lib/i18n';
 
 	let orders = $state<OrderWithItems[]>([]);
 	let isLoading = $state(true);
@@ -19,9 +19,9 @@
 		isLoading = true;
 		error = null;
 		try {
-			orders = await api_call<OrderWithItems[]>("list_orders");
+			orders = await api_call<OrderWithItems[]>('list_orders');
 		} catch (e) {
-			error = $t("orders.loadError", { error: String(e) });
+			error = $t('orders.loadError', { error: String(e) });
 		} finally {
 			isLoading = false;
 		}
@@ -29,15 +29,19 @@
 
 	function formatDateTime(iso: string): string {
 		const d = new Date(iso);
-		return d.toLocaleDateString("fr-FR", {
-			day: "2-digit",
-			month: "2-digit",
-			year: "numeric",
-		}) + " " + d.toLocaleTimeString("fr-FR", {
-			hour: "2-digit",
-			minute: "2-digit",
-			second: "2-digit",
-		});
+		return (
+			d.toLocaleDateString('fr-FR', {
+				day: '2-digit',
+				month: '2-digit',
+				year: 'numeric'
+			}) +
+			' ' +
+			d.toLocaleTimeString('fr-FR', {
+				hour: '2-digit',
+				minute: '2-digit',
+				second: '2-digit'
+			})
+		);
 	}
 
 	function centsToEuros(cents: number): string {
@@ -63,22 +67,22 @@
 
 		// Build header
 		const header = [
-			q($t("orders.csvColId")),
-			q($t("orders.csvColDate")),
-			q($t("orders.csvColTotal")),
-			q($t("orders.csvColPaymentMethod")),
+			q($t('orders.csvColId')),
+			q($t('orders.csvColDate')),
+			q($t('orders.csvColTotal')),
+			q($t('orders.csvColPaymentMethod'))
 		];
 		for (const name of productNames) {
-			header.push(q(`${name} (${$t("orders.colUnitPrice")})`));
-			header.push(q(`${name} (${$t("orders.colQty")})`));
-			header.push(q(`${name} (${$t("orders.colSubtotal")})`));
+			header.push(q(`${name} (${$t('orders.colUnitPrice')})`));
+			header.push(q(`${name} (${$t('orders.colQty')})`));
+			header.push(q(`${name} (${$t('orders.colSubtotal')})`));
 		}
 
-		const lines: string[] = [header.join(";")];
+		const lines: string[] = [header.join(';')];
 
 		// Build one line per order
 		for (const order of orders) {
-			const itemsByProduct = new Map<string, typeof order.items[number]>();
+			const itemsByProduct = new Map<string, (typeof order.items)[number]>();
 			for (const item of order.items) {
 				itemsByProduct.set(item.product_name, item);
 			}
@@ -87,7 +91,7 @@
 				q(order.id),
 				q(order.created_at),
 				q(centsToEuros(order.total)),
-				q(order.payment_method),
+				q(order.payment_method)
 			];
 			for (const name of productNames) {
 				const item = itemsByProduct.get(name);
@@ -96,16 +100,16 @@
 					row.push(q(String(item.quantity)));
 					row.push(q(centsToEuros(item.total)));
 				} else {
-					row.push(q(""));
-					row.push(q(""));
-					row.push(q(""));
+					row.push(q(''));
+					row.push(q(''));
+					row.push(q(''));
 				}
 			}
-			lines.push(row.join(";"));
+			lines.push(row.join(';'));
 		}
 
-		const csv = lines.join("\n");
-		const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+		const csv = lines.join('\n');
+		const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
 
 		const path = save({
 			defaultPath: 'commandes.csv',
@@ -113,9 +117,9 @@
 				{
 					name: 'CSV',
 					extensions: ['csv']
-				},
-			],
-		}).then((path: string|null) => {
+				}
+			]
+		}).then((path: string | null) => {
 			if (!path) {
 				throw new Error('no path');
 			}
@@ -137,20 +141,20 @@
 
 <div class="orders-page">
 	<div class="header">
-		<h1>{$t("orders.title")}</h1>
+		<h1>{$t('orders.title')}</h1>
 		{#if orders.length > 0}
 			<button class="export-btn" onclick={exportCsv}>
-				{$t("orders.exportCsv")}
+				{$t('orders.exportCsv')}
 			</button>
 		{/if}
 	</div>
 
 	{#if isLoading}
-		<div class="status-msg">{$t("orders.loading")}</div>
+		<div class="status-msg">{$t('orders.loading')}</div>
 	{:else if error}
 		<div class="status-msg error">{error}</div>
 	{:else if orders.length === 0}
-		<div class="status-msg">{$t("orders.empty")}</div>
+		<div class="status-msg">{$t('orders.empty')}</div>
 	{:else}
 		<div class="order-list">
 			{#each orders as order (order.id)}
@@ -158,17 +162,17 @@
 					<div class="order-header">
 						<span class="order-date">{formatDateTime(order.created_at)}</span>
 						<span class="order-payment badge-{order.payment_method}">
-							{$t("orders.paymentMethod." + order.payment_method)}
+							{$t('orders.paymentMethod.' + order.payment_method)}
 						</span>
 						<span class="order-total">{formatPrice(order.total)}</span>
 					</div>
 					<table class="items-table">
 						<thead>
 							<tr>
-								<th>{$t("orders.colProduct")}</th>
-								<th class="num">{$t("orders.colQty")}</th>
-								<th class="num">{$t("orders.colUnitPrice")}</th>
-								<th class="num">{$t("orders.colSubtotal")}</th>
+								<th>{$t('orders.colProduct')}</th>
+								<th class="num">{$t('orders.colQty')}</th>
+								<th class="num">{$t('orders.colUnitPrice')}</th>
+								<th class="num">{$t('orders.colSubtotal')}</th>
 							</tr>
 						</thead>
 						<tbody>

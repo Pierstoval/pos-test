@@ -2,5 +2,5 @@
 export function formatPrice(cents: number): string {
 	const euros = Math.floor(cents / 100);
 	const remainder = Math.abs(cents % 100);
-	return `${euros},${remainder.toString().padStart(2, "0")} €`;
+	return `${euros},${remainder.toString().padStart(2, '0')} €`;
 }

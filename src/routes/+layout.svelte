@@ -1,6 +1,6 @@
 <script lang="ts">
-	import NavMenu from "$lib/components/NavMenu.svelte";
-	import type { Snippet } from "svelte";
+	import NavMenu from '$lib/components/NavMenu.svelte';
+	import type { Snippet } from 'svelte';
 
 	let { children }: { children: Snippet } = $props();
 </script>

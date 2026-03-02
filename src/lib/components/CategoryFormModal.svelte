@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { Category } from "$lib/types";
-	import { t } from "$lib/i18n";
+	import type { Category } from '$lib/types';
+	import { t } from '$lib/i18n';
 
 	interface Props {
 		category: Category | null;
@@ -10,9 +10,9 @@
 
 	let { category, onSave, onCancel }: Props = $props();
 
-	let id = $state(category?.id ?? "");
-	let label = $state(category?.label ?? "");
-	let color = $state(category?.color ?? "#6b7280");
+	let id = $state(category?.id ?? '');
+	let label = $state(category?.label ?? '');
+	let color = $state(category?.color ?? '#6b7280');
 	let isSubmitting = $state(false);
 
 	let isEditing = $derived(category !== null);
@@ -20,7 +20,7 @@
 	function sanitizeId(value: string): string {
 		return value
 			.toLowerCase()
-			.replace(/[^a-z0-9._-]/g, "")
+			.replace(/[^a-z0-9._-]/g, '')
 			.replace(/[._-]{2,}/g, (m) => m[0]);
 	}
 
@@ -31,44 +31,51 @@
 	}
 
 	let canSave = $derived(
-		!isSubmitting && id.trim().length > 0 && label.trim().length > 0 && color.length > 0,
+		!isSubmitting && id.trim().length > 0 && label.trim().length > 0 && color.length > 0
 	);
 
 	function handleSubmit() {
-		if (!canSave) return;
+		if (!canSave) {
+			return;
+		}
 		isSubmitting = true;
 		onSave({ id: id.trim(), label: label.trim(), color });
 	}
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="modal-backdrop" onclick={onCancel} onkeydown={(e) => e.key === "Escape" && onCancel()}>
+<div class="modal-backdrop" onclick={onCancel} onkeydown={(e) => e.key === 'Escape' && onCancel()}>
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div class="modal" onclick={(e) => e.stopPropagation()}>
-		<h2>{isEditing ? $t("categoryForm.editTitle") : $t("categoryForm.newTitle")}</h2>
+		<h2>{isEditing ? $t('categoryForm.editTitle') : $t('categoryForm.newTitle')}</h2>
 
 		<div class="form-field">
-			<label for="category-id">{$t("categoryForm.idLabel")}</label>
+			<label for="category-id">{$t('categoryForm.idLabel')}</label>
 			<input
 				id="category-id"
 				type="text"
 				value={id}
 				oninput={handleIdInput}
-				placeholder={$t("categoryForm.idPlaceholder")}
+				placeholder={$t('categoryForm.idPlaceholder')}
 				disabled={isEditing}
 			/>
 			{#if isEditing}
-				<span class="hint">{$t("categoryForm.idHint")}</span>
+				<span class="hint">{$t('categoryForm.idHint')}</span>
 			{/if}
 		</div>
 
 		<div class="form-field">
-			<label for="category-label">{$t("categoryForm.label")}</label>
-			<input id="category-label" type="text" bind:value={label} placeholder={$t("categoryForm.labelPlaceholder")} />
+			<label for="category-label">{$t('categoryForm.label')}</label>
+			<input
+				id="category-label"
+				type="text"
+				bind:value={label}
+				placeholder={$t('categoryForm.labelPlaceholder')}
+			/>
 		</div>
 
 		<div class="form-field">
-			<label for="category-color">{$t("categoryForm.color")}</label>
+			<label for="category-color">{$t('categoryForm.color')}</label>
 			<div class="color-row">
 				<input id="category-color" type="color" bind:value={color} />
 				<span class="color-preview" style="background: {color};">{color}</span>
@@ -76,9 +83,11 @@
 		</div>
 
 		<div class="modal-actions">
-			<button class="btn btn-cancel" onclick={onCancel} disabled={isSubmitting}>{$t("categoryForm.cancel")}</button>
+			<button class="btn btn-cancel" onclick={onCancel} disabled={isSubmitting}
+				>{$t('categoryForm.cancel')}</button
+			>
 			<button class="btn btn-confirm" onclick={handleSubmit} disabled={!canSave}>
-				{isSubmitting ? $t("categoryForm.saving") : $t("categoryForm.save")}
+				{isSubmitting ? $t('categoryForm.saving') : $t('categoryForm.save')}
 			</button>
 		</div>
 	</div>
@@ -121,7 +130,7 @@
 		margin-bottom: 4px;
 	}
 
-	.form-field input[type="text"] {
+	.form-field input[type='text'] {
 		width: 100%;
 		padding: 10px 12px;
 		border: 1px solid #ccc;
@@ -130,7 +139,7 @@
 		box-sizing: border-box;
 	}
 
-	.form-field input[type="text"]:disabled {
+	.form-field input[type='text']:disabled {
 		opacity: 0.6;
 		cursor: not-allowed;
 	}
@@ -148,7 +157,7 @@
 		gap: 12px;
 	}
 
-	.color-row input[type="color"] {
+	.color-row input[type='color'] {
 		width: 48px;
 		height: 40px;
 		border: 1px solid #ccc;
@@ -209,13 +218,13 @@
 			color: #f6f6f6;
 		}
 
-		.form-field input[type="text"] {
+		.form-field input[type='text'] {
 			background: #333;
 			border-color: #555;
 			color: #f6f6f6;
 		}
 
-		.color-row input[type="color"] {
+		.color-row input[type='color'] {
 			border-color: #555;
 		}
 
