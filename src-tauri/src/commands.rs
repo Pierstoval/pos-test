@@ -1,4 +1,5 @@
 use rusqlite::params;
+use rusqlite::Connection;
 use tauri::State;
 use uuid::Uuid;
 
@@ -509,20 +510,44 @@ pub(crate) fn delete_category_inner(db: &DbState, category_id: String) -> Result
 }
 
 pub(crate) fn reset_database_inner(db: &DbState) -> Result<(), String> {
-    let conn = db
+    let mut conn = db
         .conn
         .lock()
         .map_err(|e| format!("DB lock error: {e}"))?;
 
-    conn.execute_batch(
-        "DROP TABLE IF EXISTS order_items;
-         DROP TABLE IF EXISTS orders;
-         DROP TABLE IF EXISTS products;
-         DROP TABLE IF EXISTS categories;",
-    )
-    .map_err(|e| format!("Drop tables error: {e}"))?;
+    let db_path = &db.db_path;
+    let is_file_db = db_path != ":memory:";
 
-    crate::db::create_tables(&conn)?;
+    // Close the current connection by replacing it with a temporary in-memory one.
+    // This ensures the file handle is released before we delete the file.
+    if is_file_db {
+        *conn = Connection::open_in_memory()
+            .map_err(|e| format!("Failed to create temporary connection: {e}"))?;
+
+        std::fs::remove_file(db_path)
+            .map_err(|e| format!("Failed to delete database file: {e}"))?;
+        // Also remove WAL/SHM sidecar files if they exist.
+        let _ = std::fs::remove_file(format!("{db_path}-wal"));
+        let _ = std::fs::remove_file(format!("{db_path}-shm"));
+
+        *conn = Connection::open(db_path)
+            .map_err(|e| format!("Failed to reopen database: {e}"))?;
+
+        conn.execute_batch("PRAGMA journal_mode=WAL;")
+            .map_err(|e| format!("Failed to set WAL mode: {e}"))?;
+    } else {
+        *conn = Connection::open_in_memory()
+            .map_err(|e| format!("Failed to open in-memory database: {e}"))?;
+    }
+
+    conn.execute_batch("PRAGMA foreign_keys=ON;")
+        .map_err(|e| format!("Failed to enable foreign keys: {e}"))?;
+
+    let migrations = rusqlite_migration::Migrations::new(crate::db::migrations());
+    migrations
+        .to_latest(&mut *conn)
+        .map_err(|e| format!("Migration error: {e}"))?;
+
     crate::db::create_default_data(&conn);
 
     Ok(())

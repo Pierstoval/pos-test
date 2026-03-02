@@ -11,13 +11,21 @@ pub struct DbState {
     pub db_path: String,
 }
 
+pub fn migrations() -> Vec<rusqlite_migration::M<'static>> {
+    vec![rusqlite_migration::M::up(include_str!("./migrations/0-init.sql"))]
+}
+
 #[cfg(test)]
 pub fn init_db_in_memory() -> DbState {
-    let conn = Connection::open_in_memory().expect("Failed to open in-memory database");
+    let mut conn = Connection::open_in_memory().expect("Failed to open in-memory database");
     conn.execute_batch("PRAGMA foreign_keys=ON;")
         .expect("Failed to enable foreign keys");
-    create_tables(&conn).expect("Failed to create tables");
+
+    let migrations = rusqlite_migration::Migrations::new(migrations());
+    migrations.to_latest(&mut conn).unwrap();
+
     create_default_data(&conn);
+
     DbState {
         conn: Mutex::new(conn),
         db_path: ":memory:".to_string(),
@@ -41,7 +49,7 @@ pub fn init_db(app_handle: &AppHandle) -> Result<DbState, String> {
 
     let db_path = data_dir.join("pos.db");
 
-    let conn = Connection::open(&db_path)
+    let mut conn = Connection::open(&db_path)
         .map_err(|e| format!("Failed to open database at {}: {e}", db_path.display()))?;
 
     // Enable WAL mode for better concurrent read performance.
@@ -52,58 +60,15 @@ pub fn init_db(app_handle: &AppHandle) -> Result<DbState, String> {
     conn.execute_batch("PRAGMA foreign_keys=ON;")
         .map_err(|e| format!("Failed to enable foreign keys: {e}"))?;
 
-    create_tables(&conn)?;
+    let migrations = rusqlite_migration::Migrations::new(migrations());
+    migrations.to_latest(&mut conn).unwrap();
+
     create_default_data(&conn);
 
     Ok(DbState {
         conn: Mutex::new(conn),
         db_path: db_path.to_string_lossy().into_owned(),
     })
-}
-
-/// Creates the application tables if they do not already exist.
-pub fn create_tables(conn: &Connection) -> Result<(), String> {
-    conn.execute_batch(
-        "
-        CREATE TABLE IF NOT EXISTS categories (
-            id    TEXT PRIMARY KEY NOT NULL,
-            label TEXT NOT NULL,
-            color TEXT NOT NULL
-        );
-
-        CREATE TABLE IF NOT EXISTS products (
-            id          TEXT PRIMARY KEY NOT NULL,
-            name        TEXT NOT NULL,
-            price       INTEGER NOT NULL,
-            category_id TEXT NOT NULL,
-            available   INTEGER NOT NULL DEFAULT 1,
-            FOREIGN KEY (category_id) REFERENCES categories(id)
-        );
-
-        CREATE TABLE IF NOT EXISTS orders (
-            id              TEXT PRIMARY KEY NOT NULL,
-            created_at      TEXT NOT NULL,
-            total           INTEGER NOT NULL,
-            payment_method  TEXT NOT NULL CHECK (payment_method IN ('cash', 'card'))
-        );
-
-        CREATE TABLE IF NOT EXISTS order_items (
-            id            TEXT PRIMARY KEY NOT NULL,
-            order_id      TEXT NOT NULL,
-            product_id    TEXT NOT NULL,
-            product_name  TEXT NOT NULL,
-            unit_price    INTEGER NOT NULL,
-            quantity      INTEGER NOT NULL,
-            total         INTEGER NOT NULL
-        );
-
-        CREATE INDEX IF NOT EXISTS idx_order_items_order_id
-            ON order_items (order_id);
-        ",
-    )
-    .map_err(|e| format!("Failed to create tables: {e}"))?;
-
-    Ok(())
 }
 
 /// Inserts the default categories if they do not already exist.
